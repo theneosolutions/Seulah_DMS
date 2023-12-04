@@ -9,7 +9,11 @@ public class QuestionValuePair {
     private EligibilityQuestions eligibilityQuestions;
     private final Object answer;
 
-    private String userAnswer;
+    public Object getUserAnswer() {
+        return userAnswer;
+    }
+
+    private final Object userAnswer;
 
     private Object formula;
 
@@ -17,7 +21,7 @@ public class QuestionValuePair {
         return formula;
     }
 
-    public QuestionValuePair(EligibilityQuestions eligibilityQuestions, Object answer,String userAnswer) {
+    public QuestionValuePair(EligibilityQuestions eligibilityQuestions, Object answer,Object userAnswer) {
         this.eligibilityQuestions = eligibilityQuestions;
         this.userAnswer = userAnswer;
         this.answer = answer;

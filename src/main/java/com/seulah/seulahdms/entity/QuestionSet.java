@@ -29,6 +29,6 @@ public class QuestionSet {
 
     @ElementCollection
     private List<String> answer;
-
-    private String userAnswer;
+    @ElementCollection
+    private List<String>   userAnswer;
 }

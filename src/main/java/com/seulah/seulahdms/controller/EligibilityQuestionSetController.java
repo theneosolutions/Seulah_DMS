@@ -78,6 +78,13 @@ public class EligibilityQuestionSetController {
         return eligibilityQuestionSetService.updateAnswer(setName, id, questionId, answers);
     }
 
+    @PostMapping("/updateUserAnswer")
+    @Operation(summary = "Update User Answer into the database on the base of setId and questionId")
+    public ResponseEntity<MessageResponse> updateUserAnswer(@RequestParam Long id, @RequestParam Long questionId, @RequestBody List<String> userAnswers) {
+        log.info("Update User Answer in Question Sets By Question Id ,{} and Set Id {},Answer  ,{}", questionId, id, userAnswers);
+        return eligibilityQuestionSetService.updateUserAnswer( id, questionId, userAnswers);
+    }
+
     @GetMapping("/getQuestionByIdAndSetId")
     @Operation(summary = "Getting Question by their id and set id")
     public ResponseEntity<MessageResponse> getQuestionByIdAndSetId(@RequestParam Long questionId, @RequestParam Long setId) {

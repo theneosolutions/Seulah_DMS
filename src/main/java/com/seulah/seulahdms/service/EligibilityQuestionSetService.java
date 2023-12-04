@@ -10,6 +10,7 @@ import com.seulah.seulahdms.repository.QuestionSetRepository;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.QuestionSetResponse;
 import com.seulah.seulahdms.request.QuestionValuePair;
+import com.seulah.seulahdms.request.QuestionWithUserAnswerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -171,7 +172,7 @@ public class EligibilityQuestionSetService {
 
             questionSet.getQuestions().forEach(question -> {
                 String questionText = question.getQuestion();
-                String userAnswer = question.getUserAnswer();
+                List<String> userAnswer = question.getUserAnswer();
                 EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
                 if (eligibilityQuestions != null) {
@@ -180,21 +181,23 @@ public class EligibilityQuestionSetService {
 
                         if (optionType.equals("numeric")) {
                             if (processedNumericQuestionIds.add(question.getId())) {
-                                numericQuestions.add(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()));
+                                numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(),userAnswer));
+
                             }
                         } else if (optionType.equals("text")) {
                             if (processedTextQuestionIds.add(question.getId())) {
-                                textQuestions.add(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()));
+                                textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(),userAnswer));
+
                             }
                         } else {
                             if (processedOtherQuestionIds.add(question.getId())) {
+                                QuestionValuePair otherData;
                                 if (forUser) {
-                                    QuestionValuePair otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), null,userAnswer);
-                                    otherQuestions.add(otherData);
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), null, userAnswer);
                                 } else {
-                                    QuestionValuePair otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), question.getAnswer(),userAnswer);
-                                    otherQuestions.add(otherData);
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), question.getAnswer(), userAnswer);
                                 }
+                                otherQuestions.add(otherData);
                             }
                         }
                     }
@@ -272,6 +275,26 @@ public class EligibilityQuestionSetService {
         return new ResponseEntity<>(new MessageResponse("Success", responseData, false), HttpStatus.OK);
     }
 
+    public ResponseEntity<MessageResponse> updateUserAnswer(Long id, Long questionId, List<String> userAnswers) {
+        Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(id);
+
+        if (optionalEligibilityQuestionSet.isEmpty()) {
+            return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+        }
+        EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
+        Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(questionId);
+
+        if (optionalQuestionSet.isPresent()) {
+            QuestionSet questionSet = optionalQuestionSet.get();
+            questionSet.setUserAnswer(userAnswers);
+
+            eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
+            questionSetRepository.save(questionSet);
+            return new ResponseEntity<>(new MessageResponse("Answer Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
+        }
+    }
 }
 
 
