@@ -27,8 +27,6 @@ public class EligibilityQuestions {
     private String type;
 
     @ElementCollection
-//    @CollectionTable(name = "question_options", joinColumns = @JoinColumn(name = "question_id"))
-//    @Column(name = "option", nullable = false) // Explicitly specify the column data type
     private List<String> options;
 }
 

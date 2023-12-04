@@ -17,10 +17,17 @@ spring:
   application:
     name: SeulahApplication
 server:
-  port: 8086
+  port: 8085
 logging:
   level:
     org:
       springframework:
         web: DEBUG
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
 
