@@ -15,16 +15,11 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openApiInformation() {
         Server localServer = new Server()
-                .url("http://localhost:8085")
-                .description("localhost:3000");
-
-
+                .url("http://localhost:8085");
         Info info = new Info()
-                .description("Spring Boot 3 + Open API 3")
-                .summary("Demo of Spring Boot 3 & Open API 3 Integration")
-                .title("Spring Boot 3 + Open API 3")
+                .title("Seulah DMS Api Documentation")
                 .version("V1.0.0")
-                .license(new License().name("Apache 2.0").url("http://springdoc.org"));
+                .license(new License());
 
         return new OpenAPI().info(info).addServersItem(localServer);
     }

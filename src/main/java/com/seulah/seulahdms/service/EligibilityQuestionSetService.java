@@ -1,9 +1,11 @@
 package com.seulah.seulahdms.service;
 
 
+import com.seulah.seulahdms.entity.AdminApiResponse;
 import com.seulah.seulahdms.entity.EligibilityQuestionSet;
 import com.seulah.seulahdms.entity.EligibilityQuestions;
 import com.seulah.seulahdms.entity.QuestionSet;
+import com.seulah.seulahdms.repository.AdminApiResponseRepository;
 import com.seulah.seulahdms.repository.EligibilityQuestionSetRepository;
 import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
 import com.seulah.seulahdms.repository.QuestionSetRepository;
@@ -25,11 +27,13 @@ public class EligibilityQuestionSetService {
     private final EligibilityQuestionsRepository eligibilityQuestionsRepository;
 
     private final QuestionSetRepository questionSetRepository;
+    private final AdminApiResponseRepository adminApiResponseRepository;
 
-    public EligibilityQuestionSetService(EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityQuestionsRepository eligibilityQuestionsRepository, QuestionSetRepository questionSetRepository) {
+    public EligibilityQuestionSetService(EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityQuestionsRepository eligibilityQuestionsRepository, QuestionSetRepository questionSetRepository, AdminApiResponseRepository adminApiResponseRepository) {
         this.eligibilityQuestionSetRepository = eligibilityQuestionSetRepository;
         this.eligibilityQuestionsRepository = eligibilityQuestionsRepository;
         this.questionSetRepository = questionSetRepository;
+        this.adminApiResponseRepository = adminApiResponseRepository;
     }
 
     @Transactional
@@ -275,26 +279,62 @@ public class EligibilityQuestionSetService {
         return new ResponseEntity<>(new MessageResponse("Success", responseData, false), HttpStatus.OK);
     }
 
-    public ResponseEntity<MessageResponse> updateUserAnswer(Long id, Long questionId, List<String> userAnswers) {
+
+    public ResponseEntity<MessageResponse> updateUserAnswer(Long id, List<HashMap<String, List<String>>> userAnswersList) {
         Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(id);
 
         if (optionalEligibilityQuestionSet.isEmpty()) {
             return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
         }
+
         EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
-        Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(questionId);
 
-        if (optionalQuestionSet.isPresent()) {
-            QuestionSet questionSet = optionalQuestionSet.get();
-            questionSet.setUserAnswer(userAnswers);
+        for (HashMap<String, List<String>> userAnswers : userAnswersList) {
+            for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
+                 String questionId = entry.getKey();
+                List<String> answers = entry.getValue();
 
-            eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
-            questionSetRepository.save(questionSet);
-            return new ResponseEntity<>(new MessageResponse("Answer Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
+                Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(Long.valueOf(questionId));
+
+                if (optionalQuestionSet.isPresent()) {
+                    QuestionSet questionSet = optionalQuestionSet.get();
+                    questionSet.setUserAnswer(answers);
+
+                    eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
+                    questionSetRepository.save(questionSet);
+                } else {
+                    return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
+                }
+            }
         }
+
+        // Move the return statement outside the loop
+        return new ResponseEntity<>(new MessageResponse("Answers Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
     }
+
+
+    public ResponseEntity<AdminApiResponse> checkEligibility(Long setId) {
+        Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
+        if (optionalEligibilityQuestionSet.isPresent()) {
+            EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
+            boolean answersMatch = eligibilityQuestionSet.getQuestions().stream()
+                    .allMatch(questionSet -> {
+                        List<String> sortedAnswer = new ArrayList<>(questionSet.getAnswer());
+                        List<String> sortedUserAnswer = new ArrayList<>(questionSet.getUserAnswer());
+                        Collections.sort(sortedAnswer);
+                        Collections.sort(sortedUserAnswer);
+                        return sortedAnswer.equals(sortedUserAnswer);
+                    });
+            Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
+            if (answersMatch) {
+                return adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, setId), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK));
+            } else {
+                return adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), setId), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK));
+            }
+        }
+        return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK);
+    }
+
 }
 
 

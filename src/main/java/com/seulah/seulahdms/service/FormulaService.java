@@ -30,11 +30,27 @@ public class FormulaService {
     public ResponseEntity<MessageResponse> createCalculation(FormulaRequest formulaRequest, Long setId) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
         if (eligibilityQuestionSet.isPresent()) {
-            if(eligibilityQuestionSet.get().getFormula()!=null){
+            if (eligibilityQuestionSet.get().getFormula() != null) {
                 return new ResponseEntity<>(new MessageResponse("Formula Already Exist ", null, false), HttpStatus.CREATED);
             }
             Formula formula = new Formula();
             formula.setFormulaName(formulaRequest.getFormulaName());
+            Set<String> uniqueWords = new HashSet<>();
+            List<String> duplicateWords = new ArrayList<>();
+
+            formulaRequest.getFormula().forEach(formulaValue -> {
+                if (isMathematicalOperator(formulaValue)) {
+                    return;
+                }
+                String normalizedFormulaValue = formulaValue.toLowerCase();
+                if (!uniqueWords.add(normalizedFormulaValue)) {
+                    duplicateWords.add(formulaValue);
+                }
+            });
+
+            if (!duplicateWords.isEmpty()) {
+                return new ResponseEntity<>(new MessageResponse("Duplicate words: " + duplicateWords, null, false), HttpStatus.BAD_REQUEST);
+            }
             formula.setFormula(formulaRequest.getFormula());
             formula.setOperation(formulaRequest.getOperation());
             formula.setValue(formulaRequest.getValue());
@@ -42,25 +58,35 @@ public class FormulaService {
             formulaRepository.save(formula);
             return new ResponseEntity<>(new MessageResponse("Created", formula, false), HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.CREATED);
+        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+    }
+    private boolean isMathematicalOperator(String value) {
+        return value.matches("[+\\-*/%]");
     }
 
 
     public ResponseEntity<MessageResponse> getFormula() {
         List<Formula> formulaList = formulaRepository.findAll();
         if (!formulaList.isEmpty()) {
-            return new ResponseEntity<>(new MessageResponse("Success", formulaList, false), HttpStatus.CREATED);
-        }
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.CREATED);
-    }
-
-    public ResponseEntity<MessageResponse> deleteFormula(Long id) {
-        Optional<Formula> formula = formulaRepository.findById(id);
-        if (formula.isPresent()) {
-            return new ResponseEntity<>(new MessageResponse("Success", null, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse("Success", formulaList, false), HttpStatus.OK);
         }
         return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
     }
+
+    public ResponseEntity<MessageResponse> deleteFormulaBySetId(Long setId) {
+        Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
+        if (optionalEligibilityQuestionSet.isPresent()) {
+            EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
+            if (eligibilityQuestionSet.getFormula() != null) {
+                eligibilityQuestionSet.setFormula(null);
+                eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
+                return new ResponseEntity<>(new MessageResponse("Success", null, false), HttpStatus.OK);
+            }
+        }
+
+        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+    }
+
 
     public ResponseEntity<MessageResponse> calculateFormula(Long setId, List<Map<String, Double>> userInput) {
         EligibilityQuestionSet questionSet = eligibilityQuestionSetRepository.findById(setId).orElse(null);
@@ -141,6 +167,7 @@ public class FormulaService {
             default -> false;
         };
     }
+
     private boolean isOperator(String str) {
         return str.matches("[+\\-*/%]");
     }

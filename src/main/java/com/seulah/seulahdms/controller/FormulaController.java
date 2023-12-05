@@ -37,8 +37,8 @@ public class FormulaController {
 
     @DeleteMapping("delete")
     @Operation(summary = "Delete Formula By their id")
-    public ResponseEntity<MessageResponse> deleteFormula(@RequestParam Long id ) {
-        return formulaService.deleteFormula(id);
+    public ResponseEntity<MessageResponse> deleteFormulaBySetId(@RequestParam Long setId ) {
+        return formulaService.deleteFormulaBySetId(setId);
 
     }
 

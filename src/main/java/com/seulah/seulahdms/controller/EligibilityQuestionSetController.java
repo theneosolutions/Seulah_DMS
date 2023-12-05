@@ -1,5 +1,6 @@
 package com.seulah.seulahdms.controller;
 
+import com.seulah.seulahdms.entity.AdminApiResponse;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.service.EligibilityQuestionSetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -7,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -80,9 +82,9 @@ public class EligibilityQuestionSetController {
 
     @PostMapping("/updateUserAnswer")
     @Operation(summary = "Update User Answer into the database on the base of setId and questionId")
-    public ResponseEntity<MessageResponse> updateUserAnswer(@RequestParam Long id, @RequestParam Long questionId, @RequestBody List<String> userAnswers) {
-        log.info("Update User Answer in Question Sets By Question Id ,{} and Set Id {},Answer  ,{}", questionId, id, userAnswers);
-        return eligibilityQuestionSetService.updateUserAnswer( id, questionId, userAnswers);
+    public ResponseEntity<MessageResponse> updateUserAnswer(@RequestParam Long id, @RequestBody List<HashMap<String, List<String>>> userAnswersList ) {
+        log.info("Update User Answer in Question Sets By  and Set Id {},Answer  ,{}", id, userAnswersList);
+        return eligibilityQuestionSetService.updateUserAnswer(id, userAnswersList);
     }
 
     @GetMapping("/getQuestionByIdAndSetId")
@@ -97,6 +99,13 @@ public class EligibilityQuestionSetController {
     public ResponseEntity<MessageResponse> getFormulaByEligibilityQuestionSetId(@RequestParam Long eligibilityQuestionSetId) {
 
         return eligibilityQuestionSetService.getFormulaByEligibilityQuestionSetId(eligibilityQuestionSetId);
+
+    }
+
+    @GetMapping("/checkEligibility")
+    @Operation(summary = "Checking Eligibility for user answer")
+    public ResponseEntity<AdminApiResponse> checkEligibility(@RequestParam Long setId) {
+        return eligibilityQuestionSetService.checkEligibility(setId);
 
     }
 }

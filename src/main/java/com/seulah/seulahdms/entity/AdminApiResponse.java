@@ -18,9 +18,11 @@ public class AdminApiResponse {
     private Long id;
 
     private String successMessage;
-    private String errorMessage;
     private String successImage;
     private String successDescription;
+    private String errorMessage;
     private String errorImage;
     private String errorDescription;
+
+    private Long setId;
 }
