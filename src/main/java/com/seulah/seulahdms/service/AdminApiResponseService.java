@@ -30,7 +30,7 @@ public class AdminApiResponseService {
             adminApiResponse = adminApiResponseRepository.save(adminApiResponse);
             return new ResponseEntity<>(new MessageResponse("Success", adminApiResponse, false), HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(new MessageResponse("Invalid Set ID", null, false), HttpStatus.CREATED);
+        return new ResponseEntity<>(new MessageResponse("Invalid Set Id", null, false), HttpStatus.CREATED);
     }
 
     private static AdminApiResponse getAdminApiResponse(AdminApiResponseRequest adminApiResponseRequest) {

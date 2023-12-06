@@ -2,8 +2,11 @@ package com.seulah.seulahdms.service;
 
 
 import com.seulah.seulahdms.entity.EligibilityQuestionSet;
+import com.seulah.seulahdms.entity.EligibilityResult;
 import com.seulah.seulahdms.entity.Formula;
+import com.seulah.seulahdms.entity.UserVerifiedType;
 import com.seulah.seulahdms.repository.EligibilityQuestionSetRepository;
+import com.seulah.seulahdms.repository.EligibilityResultRepository;
 import com.seulah.seulahdms.repository.FormulaRepository;
 import com.seulah.seulahdms.request.FormulaRequest;
 import com.seulah.seulahdms.request.MessageResponse;
@@ -20,12 +23,13 @@ public class FormulaService {
 
     private final FormulaRepository formulaRepository;
     private final EligibilityQuestionSetRepository eligibilityQuestionSetRepository;
+    private final EligibilityResultRepository eligibilityResultRepository;
 
-    public FormulaService(FormulaRepository formulaRepository, EligibilityQuestionSetRepository eligibilityQuestionSetRepository) {
+    public FormulaService(FormulaRepository formulaRepository, EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityResultRepository eligibilityResultRepository) {
         this.formulaRepository = formulaRepository;
         this.eligibilityQuestionSetRepository = eligibilityQuestionSetRepository;
+        this.eligibilityResultRepository = eligibilityResultRepository;
     }
-
 
     public ResponseEntity<MessageResponse> createCalculation(FormulaRequest formulaRequest, Long setId) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
@@ -60,6 +64,7 @@ public class FormulaService {
         }
         return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
     }
+
     private boolean isMathematicalOperator(String value) {
         return value.matches("[+\\-*/%]");
     }
@@ -88,7 +93,7 @@ public class FormulaService {
     }
 
 
-    public ResponseEntity<MessageResponse> calculateFormula(Long setId, List<Map<String, Double>> userInput) {
+    public ResponseEntity<MessageResponse> calculateFormula(Long setId, List<Map<String, Double>> userInput, String userId) {
         EligibilityQuestionSet questionSet = eligibilityQuestionSetRepository.findById(setId).orElse(null);
 
         if (questionSet == null || questionSet.getFormula() == null) {
@@ -97,6 +102,16 @@ public class FormulaService {
         Formula formula = questionSet.getFormula();
 
         try {
+            for (Map<String, Double> map : userInput) {
+                for (Map.Entry<String, Double> entry : new ArrayList<>(map.entrySet())) {
+                    Object value = entry.getValue();
+                    if (value instanceof Number) {
+                        map.put(entry.getKey(), ((Number) value).doubleValue());
+                    } else {
+                        map.put(entry.getKey(), tryParseDouble(value));
+                    }
+                }
+            }
             double result = calculateDynamicFormula(formula.getFormula(), userInput);
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("Result", result);
@@ -106,11 +121,17 @@ public class FormulaService {
             responseData.put("Operation", formula.getOperation());
             responseData.put("Value", formula.getValue());
             responseData.put("isEligible", isEligible);
+            EligibilityResult eligibilityResult = new EligibilityResult();
+            eligibilityResult.setUserId(userId);
+            eligibilityResult.setNumericQuestionEligibility(isEligible);
+            eligibilityResultRepository.save(eligibilityResult);
 
             return new ResponseEntity<>(new MessageResponse("Success", responseData, false), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
+        } catch (
+                IllegalArgumentException e) {
             return new ResponseEntity<>(new MessageResponse(e.getMessage(), null, false), HttpStatus.BAD_REQUEST);
         }
+
     }
 
     private double calculateDynamicFormula(List<String> formula, List<Map<String, Double>> userInput) throws IllegalArgumentException {
@@ -162,8 +183,8 @@ public class FormulaService {
         return switch (operation) {
             case ">" -> result > value;
             case "<" -> result < value;
-            case ">=" -> result >= value;
-            case "<=" -> result <= value;
+            case ">=", "≥" -> result >= value;
+            case "<=", "≤" -> result <= value;
             default -> false;
         };
     }
@@ -172,4 +193,21 @@ public class FormulaService {
         return str.matches("[+\\-*/%]");
     }
 
+    private Double tryParseDouble(Object value) {
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public ResponseEntity<MessageResponse> userEligibility(String userId) {
+        EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
+        return new ResponseEntity<>(new MessageResponse("Success", eligibilityResult, false), HttpStatus.OK);
+    }
+
+    public ResponseEntity<MessageResponse> checkAllUserEligibility(UserVerifiedType userVerifiedType) {
+        List<EligibilityResult> eligibilityResults = eligibilityResultRepository.findByUserVerifiedType(userVerifiedType);
+        return new ResponseEntity<>(new MessageResponse("Success", eligibilityResults, false), HttpStatus.OK);
+    }
 }

@@ -1,18 +1,13 @@
 package com.seulah.seulahdms.service;
 
 
-import com.seulah.seulahdms.entity.AdminApiResponse;
-import com.seulah.seulahdms.entity.EligibilityQuestionSet;
-import com.seulah.seulahdms.entity.EligibilityQuestions;
-import com.seulah.seulahdms.entity.QuestionSet;
-import com.seulah.seulahdms.repository.AdminApiResponseRepository;
-import com.seulah.seulahdms.repository.EligibilityQuestionSetRepository;
-import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
-import com.seulah.seulahdms.repository.QuestionSetRepository;
+import com.seulah.seulahdms.entity.*;
+import com.seulah.seulahdms.repository.*;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.QuestionSetResponse;
 import com.seulah.seulahdms.request.QuestionValuePair;
 import com.seulah.seulahdms.request.QuestionWithUserAnswerResponse;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 public class EligibilityQuestionSetService {
@@ -29,11 +25,17 @@ public class EligibilityQuestionSetService {
     private final QuestionSetRepository questionSetRepository;
     private final AdminApiResponseRepository adminApiResponseRepository;
 
-    public EligibilityQuestionSetService(EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityQuestionsRepository eligibilityQuestionsRepository, QuestionSetRepository questionSetRepository, AdminApiResponseRepository adminApiResponseRepository) {
+    private final EligibilityResultRepository eligibilityResultRepository;
+
+    private final MongoTemplate mongoTemplate;
+
+    public EligibilityQuestionSetService(EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityQuestionsRepository eligibilityQuestionsRepository, QuestionSetRepository questionSetRepository, AdminApiResponseRepository adminApiResponseRepository, EligibilityResultRepository eligibilityResultRepository, MongoTemplate mongoTemplate) {
         this.eligibilityQuestionSetRepository = eligibilityQuestionSetRepository;
         this.eligibilityQuestionsRepository = eligibilityQuestionsRepository;
         this.questionSetRepository = questionSetRepository;
         this.adminApiResponseRepository = adminApiResponseRepository;
+        this.eligibilityResultRepository = eligibilityResultRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Transactional
@@ -185,12 +187,12 @@ public class EligibilityQuestionSetService {
 
                         if (optionType.equals("numeric")) {
                             if (processedNumericQuestionIds.add(question.getId())) {
-                                numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(),userAnswer));
+                                numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer));
 
                             }
                         } else if (optionType.equals("text")) {
                             if (processedTextQuestionIds.add(question.getId())) {
-                                textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(),userAnswer));
+                                textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer));
 
                             }
                         } else {
@@ -291,7 +293,7 @@ public class EligibilityQuestionSetService {
 
         for (HashMap<String, List<String>> userAnswers : userAnswersList) {
             for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
-                 String questionId = entry.getKey();
+                String questionId = entry.getKey();
                 List<String> answers = entry.getValue();
 
                 Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(Long.valueOf(questionId));
@@ -308,32 +310,71 @@ public class EligibilityQuestionSetService {
             }
         }
 
-        // Move the return statement outside the loop
         return new ResponseEntity<>(new MessageResponse("Answers Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
     }
 
 
-    public ResponseEntity<AdminApiResponse> checkEligibility(Long setId) {
+    public ResponseEntity<AdminApiResponse> checkEligibility(Long setId, String userId) {
         Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
         if (optionalEligibilityQuestionSet.isPresent()) {
             EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
+
             boolean answersMatch = eligibilityQuestionSet.getQuestions().stream()
                     .allMatch(questionSet -> {
-                        List<String> sortedAnswer = new ArrayList<>(questionSet.getAnswer());
-                        List<String> sortedUserAnswer = new ArrayList<>(questionSet.getUserAnswer());
-                        Collections.sort(sortedAnswer);
-                        Collections.sort(sortedUserAnswer);
-                        return sortedAnswer.equals(sortedUserAnswer);
+                        String questionText = questionSet.getQuestion();
+                        EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
+
+                        if (eligibilityQuestions != null && eligibilityQuestions.getOptions() != null && !eligibilityQuestions.getOptions().isEmpty()) {
+                            if (!"numeric".equals(eligibilityQuestions.getOptions().get(0)) && !"text".equals(eligibilityQuestions.getOptions().get(0))) {
+                                List<String> normalizedAnswer = questionSet.getAnswer().stream()
+                                        .map(String::toLowerCase)
+                                        .collect(Collectors.toList());
+
+                                String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
+
+                                return normalizedAnswer.contains(normalizedUserAnswer);
+                            }
+                        }
+                        return true;
                     });
+
             Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
+            ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
             if (answersMatch) {
-                return adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, setId), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK));
+
+                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId), HttpStatus.OK))
+                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId), HttpStatus.OK));
+                EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
+                if (eligibilityResult != null) {
+                    eligibilityResult.setOtherQuestionEligibility(Boolean.TRUE);
+                    if (eligibilityResult.getNumericQuestionEligibility().equals(Boolean.FALSE)) {
+                        eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
+                        mongoTemplate.save(eligibilityResult);
+
+                    }else {
+                        eligibilityResult.setUserVerifiedType(UserVerifiedType.VERIFIED);
+                    }
+                    eligibilityResultRepository.save(eligibilityResult);
+
+                }
+
             } else {
-                return adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), setId), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK));
+                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId), HttpStatus.OK))
+                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK));
+                EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
+                if (eligibilityResult != null) {
+                    eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
+                    eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
+                    eligibilityResultRepository.save(eligibilityResult);
+                    mongoTemplate.save(eligibilityResult);
+                }
             }
+            return adminApiResponseResponseEntity;
         }
-        return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, setId), HttpStatus.OK);
+
+        return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK);
     }
+
 
 }
 

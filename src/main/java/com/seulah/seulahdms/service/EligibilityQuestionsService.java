@@ -56,11 +56,8 @@ public class EligibilityQuestionsService {
         if (optionalEligibilityQuestions.isPresent()) {
             EligibilityQuestions eligibilityQuestion = optionalEligibilityQuestions.get();
 
-            // Update the association and remove the EligibilityQuestions instance from the QuestionSet
             List<QuestionSet> questionSetList = questionSetRepository.findByQuestion(eligibilityQuestion.getQuestion());
-            questionSetList.forEach(questionSet -> {
-                questionSet.setEligibilityQuestionSet(null); // Remove the association
-            });
+            questionSetList.forEach(questionSet -> questionSet.setEligibilityQuestionSet(null));
             questionSetRepository.saveAll(questionSetList);
 
             eligibilityQuestionsRepository.delete(eligibilityQuestion);

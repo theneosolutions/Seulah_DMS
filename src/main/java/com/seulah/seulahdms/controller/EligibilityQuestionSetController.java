@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("/questionSet")
+@RequestMapping("api/vi/admin/questionSet")
 public class EligibilityQuestionSetController {
     private final EligibilityQuestionSetService eligibilityQuestionSetService;
 
@@ -104,8 +104,8 @@ public class EligibilityQuestionSetController {
 
     @GetMapping("/checkEligibility")
     @Operation(summary = "Checking Eligibility for user answer")
-    public ResponseEntity<AdminApiResponse> checkEligibility(@RequestParam Long setId) {
-        return eligibilityQuestionSetService.checkEligibility(setId);
+    public ResponseEntity<AdminApiResponse> checkEligibility(@RequestParam Long setId,@RequestParam String userId) {
+        return eligibilityQuestionSetService.checkEligibility(setId,userId);
 
     }
 }

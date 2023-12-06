@@ -1,14 +1,14 @@
 package com.seulah.seulahdms.controller;
 
-import com.seulah.seulahdms.entity.AdminApiResponse;
 import com.seulah.seulahdms.request.AdminApiResponseRequest;
-import com.seulah.seulahdms.request.FormulaRequest;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.service.AdminApiResponseService;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("apiResponse")

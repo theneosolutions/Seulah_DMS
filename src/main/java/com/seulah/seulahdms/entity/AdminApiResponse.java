@@ -24,5 +24,7 @@ public class AdminApiResponse {
     private String errorImage;
     private String errorDescription;
 
+    private Boolean isEligible;
+
     private Long setId;
 }

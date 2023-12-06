@@ -19,9 +19,6 @@ public class QuestionSetResponse {
     private List<QuestionValuePair> textQuestions;
     private Set<QuestionValuePair> otherQuestions;
 
-    // Constructors, getters, and setters
-
-    // Example constructor
     public QuestionSetResponse(Long setId,Object formula,String setName) {
         this.setId = setId;
         this.formula = formula;
