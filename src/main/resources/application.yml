@@ -18,7 +18,7 @@ spring:
     hibernate:
       ddl-auto: update
   application:
-    name: SeulahApplication
+    name: DMS-SERVICE
 server:
   port: 8085
 logging:
@@ -33,5 +33,18 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    ip-address: true
+
+
+
 
 

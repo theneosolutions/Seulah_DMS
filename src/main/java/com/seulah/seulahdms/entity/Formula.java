@@ -3,7 +3,7 @@ package com.seulah.seulahdms.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import java.util.List;
 
 @Getter

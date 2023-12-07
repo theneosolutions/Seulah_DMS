@@ -1,6 +1,6 @@
 package com.seulah.seulahdms.entity;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.*;
 
 import java.util.List;
