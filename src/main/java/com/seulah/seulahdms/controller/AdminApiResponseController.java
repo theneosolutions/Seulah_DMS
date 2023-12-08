@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("apiResponse")
+@RequestMapping("api/v1/dms/apiResponse")
 @Slf4j
 public class AdminApiResponseController {
 
