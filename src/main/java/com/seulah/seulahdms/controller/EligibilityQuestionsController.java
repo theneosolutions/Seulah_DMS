@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/vi/admin/EligibilityQuestions")
+@RequestMapping("api/v1/dms/eligibilityQuestions")
 @Slf4j
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST})
 public class EligibilityQuestionsController {

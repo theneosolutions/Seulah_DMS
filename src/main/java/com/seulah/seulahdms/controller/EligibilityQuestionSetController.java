@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("api/vi/admin/questionSet")
+@RequestMapping("api/v1/dms/questionSet")
 public class EligibilityQuestionSetController {
     private final EligibilityQuestionSetService eligibilityQuestionSetService;
 

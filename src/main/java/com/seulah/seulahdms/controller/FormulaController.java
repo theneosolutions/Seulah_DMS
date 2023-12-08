@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("api/vi/admin/formula")
+@RequestMapping("api/v1/dms/formula")
 public class FormulaController {
 
     private final FormulaService formulaService;
