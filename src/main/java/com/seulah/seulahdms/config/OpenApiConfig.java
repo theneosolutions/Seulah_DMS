@@ -5,9 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.util.Collections;
 import java.util.function.Predicate;
 
 @Configuration
@@ -20,6 +23,15 @@ public class OpenApiConfig {
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .paths(Predicate.not(PathSelectors.regex("/error.*")))
-                .build();
+                .build().apiInfo(apiInfo());
+    }
+    private ApiInfo apiInfo() {
+        return new ApiInfo(
+                "Seualh REST API",
+                "DMS Api Documentation.",
+                "V1",
+                "",
+                new Contact("", "", ""),
+                "", "", Collections.emptyList());
     }
 }
