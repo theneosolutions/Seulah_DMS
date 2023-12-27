@@ -7,6 +7,7 @@ import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.QuestionSetResponse;
 import com.seulah.seulahdms.request.QuestionValuePair;
 import com.seulah.seulahdms.request.QuestionWithUserAnswerResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,10 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static com.seulah.seulahdms.utils.Constants.*;
+
 @Service
+@Slf4j
 public class EligibilityQuestionSetService {
     private final EligibilityQuestionSetRepository eligibilityQuestionSetRepository;
     private final EligibilityQuestionsRepository eligibilityQuestionsRepository;
@@ -39,9 +43,10 @@ public class EligibilityQuestionSetService {
     }
 
     @Transactional
-    public ResponseEntity<MessageResponse> saveQuestionSet(String setName, List<Long> questionIds) {
+    public ResponseEntity<MessageResponse> saveQuestionSet(String setName, String screenName, List<Long> questionIds) {
         EligibilityQuestionSet eligibilityQuestionSet = new EligibilityQuestionSet();
         eligibilityQuestionSet.setName(setName);
+        eligibilityQuestionSet.setScreenName(screenName);
 
         List<EligibilityQuestions> eligibilityQuestions = eligibilityQuestionsRepository.findAllById(questionIds);
         EligibilityQuestionSet finalEligibilityQuestionSet = eligibilityQuestionSet;
@@ -56,7 +61,7 @@ public class EligibilityQuestionSetService {
 
         eligibilityQuestionSet = eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
         questionSetRepository.saveAll(eligibilityQuestionSet.getQuestions());
-
+        log.info("Set created successfully");
         return new ResponseEntity<>(new MessageResponse("Set Created Successfully", eligibilityQuestionSet, false), HttpStatus.CREATED);
     }
 
@@ -75,31 +80,32 @@ public class EligibilityQuestionSetService {
                     questionWithOptions.put("question", question.getQuestion());
                     questionWithOptions.put("options", eligibilityQuestion.getOptions());
                     questionWithOptions.put("Heading", eligibilityQuestion.getHeading());
+                    questionWithOptions.put("ScreenName", eligibilityQuestion.getScreenName());
 
                     questionsWithOptions.add(questionWithOptions);
                 }
             });
-
-            return new ResponseEntity<>(new MessageResponse("Success", questionsWithOptions, false), HttpStatus.OK);
+            log.info("Get question detail by id {}", id);
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, questionsWithOptions, false), HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+        log.info("No record against the question id {}", id);
+        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
     }
 
 
     @Transactional
     public ResponseEntity<MessageResponse> getQuestions() {
         List<EligibilityQuestionSet> eligibilityQuestionSets = eligibilityQuestionSetRepository.findAll();
-        return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestionSets, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestionSets, false), HttpStatus.OK);
     }
 
     public ResponseEntity<MessageResponse> deleteQuestion(Long id) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(id);
         if (eligibilityQuestionSet.isPresent()) {
             eligibilityQuestionSetRepository.delete(eligibilityQuestionSet.get());
-            return new ResponseEntity<>(new MessageResponse("Success", null, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, null, false), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
     }
 
     @Transactional
@@ -107,7 +113,7 @@ public class EligibilityQuestionSetService {
         Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 
         if (optionalEligibilityQuestionSet.isEmpty()) {
-            return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
         }
         EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
         Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(questionId);
@@ -121,9 +127,10 @@ public class EligibilityQuestionSetService {
 
             eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
             questionSetRepository.save(questionSet);
-
+            log.info("Update admin answer successfully {} against question id {} and set id {}", answer, questionId, setId);
             return new ResponseEntity<>(new MessageResponse("Answer Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
         } else {
+            log.info("Question set not found against this id {}", setId);
             return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
         }
     }
@@ -144,10 +151,10 @@ public class EligibilityQuestionSetService {
         }));
 
         if (!responseData.get().isEmpty()) {
-            return new ResponseEntity<>(new MessageResponse("Success", responseData.get(), false), HttpStatus.OK);
+            log.info("Getting question by id and set id {},{}", questionId, setId);
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, responseData.get(), false), HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
     }
 
 
@@ -157,10 +164,11 @@ public class EligibilityQuestionSetService {
         if (eligibilityQuestionSetOptional.isPresent()) {
             EligibilityQuestionSet eligibilityQuestionSet = eligibilityQuestionSetOptional.get();
             if (eligibilityQuestionSet.getFormula() != null) {
-                return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestionSet.getFormula(), false), HttpStatus.OK);
+                log.info("Get formula against set id {}", eligibilityQuestionSetId);
+                return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestionSet.getFormula(), false), HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
     }
 
     public ResponseEntity<MessageResponse> getQuestionSetByNumericAndString(Long id, Boolean forUser) {
@@ -185,23 +193,23 @@ public class EligibilityQuestionSetService {
                     for (String option : eligibilityQuestions.getOptions()) {
                         String optionType = option.toLowerCase();
 
-                        if (optionType.equals("numeric")) {
+                        if (optionType.equals(NUMERIC)) {
                             if (processedNumericQuestionIds.add(question.getId())) {
-                                numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer));
+                                numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName()));
 
                             }
                         } else if (optionType.equals("text")) {
                             if (processedTextQuestionIds.add(question.getId())) {
-                                textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer));
+                                textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName()));
 
                             }
                         } else {
                             if (processedOtherQuestionIds.add(question.getId())) {
                                 QuestionValuePair otherData;
-                                if (forUser) {
-                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), null, userAnswer);
+                                if (Boolean.TRUE.equals(forUser)) {
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), null, userAnswer);
                                 } else {
-                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), question.getAnswer(), userAnswer);
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), question.getAnswer(), userAnswer);
                                 }
                                 otherQuestions.add(otherData);
                             }
@@ -215,8 +223,8 @@ public class EligibilityQuestionSetService {
         responseData.put("Numeric_Question", numericQuestions);
         responseData.put("Text_Question", textQuestions);
         responseData.put("Other_Question", otherQuestions);
-
-        return new ResponseEntity<>(new MessageResponse("Success", responseData, false), HttpStatus.OK);
+        log.info("Get Numeric Question and text question and other question separately by set id: {}", id);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, responseData, false), HttpStatus.OK);
     }
 
     public ResponseEntity<MessageResponse> getAllDecision() {
@@ -246,27 +254,27 @@ public class EligibilityQuestionSetService {
                         for (String option : eligibilityQuestions.getOptions()) {
                             String optionType = option.toLowerCase();
 
-                            QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions()), !optionType.equals("numeric") && !optionType.equals("text") ? question.getAnswer() : null, question.getUserAnswer());
+                            QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), !optionType.equals(NUMERIC) && !optionType.equals("text") ? question.getAnswer() : null, question.getUserAnswer());
 
                             switch (optionType) {
-                                case "numeric":
+                                case NUMERIC -> {
                                     if (!processedNumericQuestions.contains(questionKey)) {
                                         processedNumericQuestions.add(questionKey);
                                         questionSetResponse.getNumericQuestions().add(questionValuePair);
                                     }
-                                    break;
-                                case "text":
+                                }
+                                case "text" -> {
                                     if (!processedTextQuestions.contains(questionKey)) {
                                         processedTextQuestions.add(questionKey);
                                         questionSetResponse.getTextQuestions().add(questionValuePair);
                                     }
-                                    break;
-                                default:
+                                }
+                                default -> {
                                     if (!processedOtherQuestions.contains(questionKey)) {
                                         processedOtherQuestions.add(questionKey);
                                         questionSetResponse.getOtherQuestions().add(questionValuePair);
                                     }
-                                    break;
+                                }
                             }
                         }
                     }
@@ -277,33 +285,42 @@ public class EligibilityQuestionSetService {
 
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("QuestionSets", new ArrayList<>(questionSetResponsesMap.values()));
-
-        return new ResponseEntity<>(new MessageResponse("Success", responseData, false), HttpStatus.OK);
+        log.info("Getting all design successfully");
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, responseData, false), HttpStatus.OK);
     }
 
-
-    public ResponseEntity<MessageResponse> updateUserAnswer(Long id, List<HashMap<String, List<String>>> userAnswersList) {
+    public ResponseEntity<MessageResponse> updateUserAnswer(Long id, List<Map<String, Object>> userInputList) {
         Optional<EligibilityQuestionSet> optionalEligibilityQuestionSet = eligibilityQuestionSetRepository.findById(id);
 
         if (optionalEligibilityQuestionSet.isEmpty()) {
-            return new ResponseEntity<>(new MessageResponse("No Record Found", null, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
         }
 
         EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
 
-        for (HashMap<String, List<String>> userAnswers : userAnswersList) {
-            for (Map.Entry<String, List<String>> entry : userAnswers.entrySet()) {
+        for (Map<String, Object> userInput : userInputList) {
+            for (Map.Entry<String, Object> entry : userInput.entrySet()) {
                 String questionId = entry.getKey();
-                List<String> answers = entry.getValue();
+                Object answerOrInput = entry.getValue();
 
                 Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(Long.valueOf(questionId));
 
                 if (optionalQuestionSet.isPresent()) {
                     QuestionSet questionSet = optionalQuestionSet.get();
-                    questionSet.setUserAnswer(answers);
+
+                    if (answerOrInput instanceof List) {
+                        List<String> answers = (List<String>) answerOrInput;
+                        questionSet.setUserAnswer(answers);
+                    } else if (answerOrInput instanceof Integer) {
+                        String answer = String.valueOf(answerOrInput);
+                        List<String> answers = new ArrayList<>();
+                        answers.add(answer);
+                        questionSet.setUserAnswer(answers);
+                    }
 
                     eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
                     questionSetRepository.save(questionSet);
+                    log.info("Question set not found against this id {}", id);
                 } else {
                     return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
                 }
@@ -324,16 +341,15 @@ public class EligibilityQuestionSetService {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
-                        if (eligibilityQuestions != null && eligibilityQuestions.getOptions() != null && !eligibilityQuestions.getOptions().isEmpty()) {
-                            if (!"numeric".equals(eligibilityQuestions.getOptions().get(0)) && !"text".equals(eligibilityQuestions.getOptions().get(0))) {
-                                List<String> normalizedAnswer = questionSet.getAnswer().stream()
-                                        .map(String::toLowerCase)
-                                        .collect(Collectors.toList());
+                        if (eligibilityQuestions != null && eligibilityQuestions.getOptions() != null && !eligibilityQuestions.getOptions().isEmpty() && (!NUMERIC.equals(eligibilityQuestions.getOptions().get(0)) && !"text".equals(eligibilityQuestions.getOptions().get(0)))) {
+                            List<String> normalizedAnswer = questionSet.getAnswer().stream()
+                                    .map(String::toLowerCase)
+                                    .collect(Collectors.toList());
 
-                                String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
+                            String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
 
-                                return normalizedAnswer.contains(normalizedUserAnswer);
-                            }
+                            return normalizedAnswer.contains(normalizedUserAnswer);
+
                         }
                         return true;
                     });
@@ -341,26 +357,24 @@ public class EligibilityQuestionSetService {
             Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
             ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
             if (answersMatch) {
-
                 adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId), HttpStatus.OK))
                         .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId), HttpStatus.OK));
+
                 EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
                 if (eligibilityResult != null) {
                     eligibilityResult.setOtherQuestionEligibility(Boolean.TRUE);
                     if (eligibilityResult.getNumericQuestionEligibility().equals(Boolean.FALSE)) {
                         eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
                         mongoTemplate.save(eligibilityResult);
-
-                    }else {
+                    } else {
                         eligibilityResult.setUserVerifiedType(UserVerifiedType.VERIFIED);
                     }
                     eligibilityResultRepository.save(eligibilityResult);
-
                 }
-
             } else {
                 adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId), HttpStatus.OK))
                         .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK));
+
                 EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
                 if (eligibilityResult != null) {
                     eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
@@ -374,7 +388,6 @@ public class EligibilityQuestionSetService {
 
         return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK);
     }
-
 
 }
 

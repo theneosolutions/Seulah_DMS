@@ -1,11 +1,9 @@
 package com.seulah.seulahdms.entity;
 
 
+import lombok.*;
+
 import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 
 @Getter
@@ -26,4 +24,5 @@ public class EligibilityResult {
 
     @Enumerated(value = EnumType.STRING)
     private UserVerifiedType userVerifiedType;
+
 }

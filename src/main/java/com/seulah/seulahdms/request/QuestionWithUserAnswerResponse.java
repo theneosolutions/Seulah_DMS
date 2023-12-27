@@ -24,4 +24,6 @@ public class QuestionWithUserAnswerResponse {
     private List<String> options;
 
     private List<String> userAnswer;
+
+    private String screenName;
 }

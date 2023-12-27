@@ -24,4 +24,6 @@ public class FormulaRequest {
     @NotNull
     @NotBlank
     private Double value;
+
+    private String screenName;
 }
