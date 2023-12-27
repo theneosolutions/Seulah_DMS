@@ -20,6 +20,7 @@ public class EligibilityQuestionSet {
     private Long id;
     @Column(nullable = false)
     private String name;
+    private String screenName;
 
     @OneToMany(mappedBy = "eligibilityQuestionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSet> questions = new ArrayList<>();

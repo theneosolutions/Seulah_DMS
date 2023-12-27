@@ -6,6 +6,7 @@ import com.seulah.seulahdms.repository.NumericQuestionRepository;
 import com.seulah.seulahdms.repository.OtherQuestionRepository;
 import com.seulah.seulahdms.request.BaseQuestionsRequest;
 import com.seulah.seulahdms.request.MessageResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class BaseQuestionService {
     private final NumericQuestionRepository numericQuestionRepository;
 
