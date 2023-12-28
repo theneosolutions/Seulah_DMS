@@ -13,8 +13,8 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
 @RequestMapping("api/v1/dms/questionSet")
+@CrossOrigin(origins = {"http://localhost:3000","http://localhost:3001","http://localhost:8085"}, maxAge = 3600, allowCredentials = "true")
 public class EligibilityQuestionSetController {
     private final EligibilityQuestionSetService eligibilityQuestionSetService;
 
