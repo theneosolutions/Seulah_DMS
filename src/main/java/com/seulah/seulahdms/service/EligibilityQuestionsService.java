@@ -1,14 +1,21 @@
 package com.seulah.seulahdms.service;
 
 
-import com.seulah.seulahdms.entity.*;
-import com.seulah.seulahdms.repository.*;
-import com.seulah.seulahdms.request.*;
-import org.springframework.http.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import com.seulah.seulahdms.entity.EligibilityQuestionSet;
+import com.seulah.seulahdms.entity.EligibilityQuestions;
+import com.seulah.seulahdms.entity.QuestionSet;
+import com.seulah.seulahdms.repository.EligibilityQuestionSetRepository;
+import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
+import com.seulah.seulahdms.repository.QuestionSetRepository;
+import com.seulah.seulahdms.request.EligibilityQuestionsRequest;
+import com.seulah.seulahdms.request.MessageResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 
@@ -37,6 +44,11 @@ public class EligibilityQuestionsService {
             eligibilityQuestions.setType(eligibilityQuestionsRequest.getType());
             eligibilityQuestions.setHeading(eligibilityQuestionsRequest.getHeading());
             eligibilityQuestions.setOptions(eligibilityQuestionsRequest.getOptions());
+            if (eligibilityQuestionsRequest.getLanguageCode() == null || eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
+                eligibilityQuestions.setLanguageCode("en");
+            } else {
+                eligibilityQuestions.setLanguageCode(eligibilityQuestionsRequest.getLanguageCode().toLowerCase());
+            }
             eligibilityQuestions.setScreenName(eligibilityQuestionsRequest.getScreenName());
             eligibilityQuestions = eligibilityQuestionsRepository.save(eligibilityQuestions);
             return new ResponseEntity<>(new MessageResponse("Question Created Successfully", eligibilityQuestions, false), HttpStatus.CREATED);
@@ -98,11 +110,14 @@ public class EligibilityQuestionsService {
             if (eligibilityQuestionsRequest.getHeading() != null && !eligibilityQuestionsRequest.getHeading().isEmpty()) {
                 eligibilityQuestions.get().setHeading(eligibilityQuestionsRequest.getHeading());
             }
-            if (eligibilityQuestionsRequest.getQuestion() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {
+            if (eligibilityQuestionsRequest.getOptions() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {
                 eligibilityQuestions.get().setOptions(eligibilityQuestionsRequest.getOptions());
             }
             if (eligibilityQuestionsRequest.getScreenName() != null && !eligibilityQuestionsRequest.getScreenName().isEmpty()) {
                 eligibilityQuestions.get().setScreenName(eligibilityQuestionsRequest.getScreenName());
+            }
+            if (eligibilityQuestionsRequest.getLanguageCode() != null && !eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
+                eligibilityQuestions.get().setLanguageCode(eligibilityQuestionsRequest.getLanguageCode());
             }
 
         }

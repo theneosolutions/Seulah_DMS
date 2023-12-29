@@ -1,8 +1,8 @@
 package com.seulah.seulahdms.entity;
 
-import javax.persistence.*;
 import lombok.*;
 
+import javax.persistence.*;
 import java.util.List;
 
 @Entity
@@ -20,7 +20,7 @@ public class EligibilityQuestions {
     @Column(nullable = false, unique = true)
     private String heading;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     private String question;
 
     @Column(nullable = false)
@@ -30,5 +30,6 @@ public class EligibilityQuestions {
     private List<String> options;
 
     private String screenName;
+    private String languageCode;
 }
 

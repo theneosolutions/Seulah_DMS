@@ -32,4 +32,10 @@ public class AdminApiResponseController {
         return adminApiResponseService.getAllResponse();
 
     }
+    @GetMapping("getAllResponseByLanguageCode")
+    public ResponseEntity<MessageResponse> getAllResponseByLanguageCode(@RequestParam String langCode) {
+        log.info("Getting admin api response by language code ,{}",langCode);
+        return adminApiResponseService.getAllResponseByLanguageCode(langCode);
+
+    }
 }

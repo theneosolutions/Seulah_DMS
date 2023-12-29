@@ -31,7 +31,6 @@ public class Formula {
 
     @OneToOne
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-//    @JoinColumn(name = "eligibility_question_set_id")
     private EligibilityQuestionSet eligibilityQuestionSet;
 
 }

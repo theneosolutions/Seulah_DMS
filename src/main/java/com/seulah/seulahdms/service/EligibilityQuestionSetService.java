@@ -43,10 +43,9 @@ public class EligibilityQuestionSetService {
     }
 
     @Transactional
-    public ResponseEntity<MessageResponse> saveQuestionSet(String setName, String screenName, List<Long> questionIds) {
+    public ResponseEntity<MessageResponse> saveQuestionSet(String setName, List<Long> questionIds) {
         EligibilityQuestionSet eligibilityQuestionSet = new EligibilityQuestionSet();
         eligibilityQuestionSet.setName(setName);
-        eligibilityQuestionSet.setScreenName(screenName);
 
         List<EligibilityQuestions> eligibilityQuestions = eligibilityQuestionsRepository.findAllById(questionIds);
         EligibilityQuestionSet finalEligibilityQuestionSet = eligibilityQuestionSet;
@@ -207,9 +206,9 @@ public class EligibilityQuestionSetService {
                             if (processedOtherQuestionIds.add(question.getId())) {
                                 QuestionValuePair otherData;
                                 if (Boolean.TRUE.equals(forUser)) {
-                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), null, userAnswer);
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode()), null, userAnswer);
                                 } else {
-                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), question.getAnswer(), userAnswer);
+                                    otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode()), question.getAnswer(), userAnswer);
                                 }
                                 otherQuestions.add(otherData);
                             }
@@ -254,7 +253,7 @@ public class EligibilityQuestionSetService {
                         for (String option : eligibilityQuestions.getOptions()) {
                             String optionType = option.toLowerCase();
 
-                            QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName()), !optionType.equals(NUMERIC) && !optionType.equals("text") ? question.getAnswer() : null, question.getUserAnswer());
+                            QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode()), !optionType.equals(NUMERIC) && !optionType.equals("text") ? question.getAnswer() : null, question.getUserAnswer());
 
                             switch (optionType) {
                                 case NUMERIC -> {
@@ -357,8 +356,8 @@ public class EligibilityQuestionSetService {
             Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
             ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
             if (answersMatch) {
-                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId), HttpStatus.OK))
-                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId), HttpStatus.OK));
+                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
+                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId, null), HttpStatus.OK));
 
                 EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
                 if (eligibilityResult != null) {
@@ -372,8 +371,8 @@ public class EligibilityQuestionSetService {
                     eligibilityResultRepository.save(eligibilityResult);
                 }
             } else {
-                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId), HttpStatus.OK))
-                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK));
+                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
+                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId, null), HttpStatus.OK));
 
                 EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
                 if (eligibilityResult != null) {
@@ -386,7 +385,7 @@ public class EligibilityQuestionSetService {
             return adminApiResponseResponseEntity;
         }
 
-        return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId), HttpStatus.OK);
+        return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId, null), HttpStatus.OK);
     }
 
 }
