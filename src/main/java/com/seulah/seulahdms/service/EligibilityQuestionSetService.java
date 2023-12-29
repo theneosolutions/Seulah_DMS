@@ -195,17 +195,17 @@ public class EligibilityQuestionSetService {
 
                     if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase(NUMERIC)) {
                         if (processedNumericQuestionIds.add(question.getId())) {
-                            numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName()));
+                            numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), eligibilityQuestions.getField()));
 
                         }
                     } else if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase("text")) {
                         if (processedTextQuestionIds.add(question.getId())) {
-                            textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName()));
+                            textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), eligibilityQuestions.getField()));
 
                         }
                     } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase("min&max")) {
                         if (processedMixMaxQuestionIds.add(question.getId())) {
-                            minMaxResponse.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName()));
+                            minMaxResponse.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), null));
 
                         }
                     } else {
@@ -248,6 +248,7 @@ public class EligibilityQuestionSetService {
             Set<String> processedNumericQuestions = new HashSet<>();
             Set<String> processedTextQuestions = new HashSet<>();
             Set<String> processedOtherQuestions = new HashSet<>();
+            Set<String> processedMinMaxQuestions = new HashSet<>();
             Set<String> processedQuestionKeys = new HashSet<>();
 
             questionSet.getQuestions().forEach(question -> {
@@ -257,33 +258,27 @@ public class EligibilityQuestionSetService {
 
                     EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(question.getQuestion());
                     if (eligibilityQuestions != null) {
-                        if (eligibilityQuestions.getType().equalsIgnoreCase("textBox")) {
+                        QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), eligibilityQuestions.getField() == null ? question.getAnswer() : null, question.getUserAnswer());
 
-                        }
-                        for (String option : eligibilityQuestions.getOptions()) {
-                            String optionType = option.toLowerCase();
-
-                            QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), !optionType.equals(NUMERIC) && !optionType.equals("text") ? question.getAnswer() : null, question.getUserAnswer());
-
-                            switch (optionType) {
-                                case NUMERIC -> {
-                                    if (!processedNumericQuestions.contains(questionKey)) {
-                                        processedNumericQuestions.add(questionKey);
-                                        questionSetResponse.getNumericQuestions().add(questionValuePair);
-                                    }
-                                }
-                                case "text" -> {
-                                    if (!processedTextQuestions.contains(questionKey)) {
-                                        processedTextQuestions.add(questionKey);
-                                        questionSetResponse.getTextQuestions().add(questionValuePair);
-                                    }
-                                }
-                                default -> {
-                                    if (!processedOtherQuestions.contains(questionKey)) {
-                                        processedOtherQuestions.add(questionKey);
-                                        questionSetResponse.getOtherQuestions().add(questionValuePair);
-                                    }
-                                }
+                        if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase(NUMERIC)) {
+                            if (!processedNumericQuestions.contains(questionKey)) {
+                                processedNumericQuestions.add(questionKey);
+                                questionSetResponse.getNumericQuestions().add(questionValuePair);
+                            }
+                        } else if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase("text")) {
+                            if (!processedTextQuestions.contains(questionKey)) {
+                                processedTextQuestions.add(questionKey);
+                                questionSetResponse.getTextQuestions().add(questionValuePair);
+                            }
+                        } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase("min&max")) {
+                            if (!processedMinMaxQuestions.contains(questionKey)) {
+                                processedMinMaxQuestions.add(questionKey);
+                                questionSetResponse.getMinMaxQuestions().add(questionValuePair);
+                            }
+                        } else {
+                            if (!processedOtherQuestions.contains(questionKey)) {
+                                processedOtherQuestions.add(questionKey);
+                                questionSetResponse.getOtherQuestions().add(questionValuePair);
                             }
                         }
                     }
@@ -350,7 +345,7 @@ public class EligibilityQuestionSetService {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
-                        if (eligibilityQuestions != null && eligibilityQuestions.getOptions() != null && !eligibilityQuestions.getOptions().isEmpty() && (!NUMERIC.equals(eligibilityQuestions.getOptions().get(0)) && !"text".equals(eligibilityQuestions.getOptions().get(0)))) {
+                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null) {
                             List<String> normalizedAnswer = questionSet.getAnswer().stream()
                                     .map(String::toLowerCase)
                                     .collect(Collectors.toList());
