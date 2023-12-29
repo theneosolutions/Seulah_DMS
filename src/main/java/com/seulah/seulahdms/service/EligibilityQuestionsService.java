@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +44,14 @@ public class EligibilityQuestionsService {
             eligibilityQuestions.setQuestion(eligibilityQuestionsRequest.getQuestion());
             eligibilityQuestions.setType(eligibilityQuestionsRequest.getType());
             eligibilityQuestions.setHeading(eligibilityQuestionsRequest.getHeading());
-            eligibilityQuestions.setOptions(eligibilityQuestionsRequest.getOptions());
+            if (eligibilityQuestionsRequest.getType().equalsIgnoreCase("textBox")) {
+                eligibilityQuestions.setOptions(new ArrayList<>());
+                eligibilityQuestions.setField(eligibilityQuestionsRequest.getField());
+            } else {
+                eligibilityQuestions.setOptions(eligibilityQuestionsRequest.getOptions());
+                eligibilityQuestions.setField(null);
+            }
+
             if (eligibilityQuestionsRequest.getLanguageCode() == null || eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
                 eligibilityQuestions.setLanguageCode("en");
             } else {
@@ -101,13 +109,13 @@ public class EligibilityQuestionsService {
             List<QuestionSet> questionSetList = questionSetRepository.findByQuestion(eligibilityQuestions.get().getQuestion());
 
             questionSetList.forEach(questionSet -> questionSet.setQuestion(eligibilityQuestionsRequest.getQuestion()));
-            if (eligibilityQuestionsRequest.getQuestion() != null && !eligibilityQuestionsRequest.getQuestion().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getQuestion().isEmpty()) {
                 eligibilityQuestions.get().setQuestion(eligibilityQuestionsRequest.getQuestion());
             }
-            if (eligibilityQuestionsRequest.getType() != null && !eligibilityQuestionsRequest.getType().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getType().isEmpty()) {
                 eligibilityQuestions.get().setType(eligibilityQuestionsRequest.getType());
             }
-            if (eligibilityQuestionsRequest.getHeading() != null && !eligibilityQuestionsRequest.getHeading().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getHeading().isEmpty()) {
                 eligibilityQuestions.get().setHeading(eligibilityQuestionsRequest.getHeading());
             }
             if (eligibilityQuestionsRequest.getOptions() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {

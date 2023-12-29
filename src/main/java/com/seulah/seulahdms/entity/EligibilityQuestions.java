@@ -31,5 +31,7 @@ public class EligibilityQuestions {
 
     private String screenName;
     private String languageCode;
+
+    private String field;
 }
 

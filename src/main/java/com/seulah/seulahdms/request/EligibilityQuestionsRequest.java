@@ -27,6 +27,6 @@ public class EligibilityQuestionsRequest {
     private String screenName;
 
     private String languageCode;
-
+    private String field;
 
 }
