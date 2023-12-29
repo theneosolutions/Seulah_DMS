@@ -135,12 +135,9 @@ public class FormulaService {
             EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
             if (eligibilityResult == null) {
                 eligibilityResult = new EligibilityResult();
-                eligibilityResult.setUserId(userId);
-                eligibilityResult.setNumericQuestionEligibility(isEligible);
-            } else {
-                eligibilityResult.setUserId(userId);
-                eligibilityResult.setNumericQuestionEligibility(isEligible);
             }
+            eligibilityResult.setUserId(userId);
+            eligibilityResult.setNumericQuestionEligibility(isEligible);
 
             eligibilityResultRepository.save(eligibilityResult);
 
@@ -157,7 +154,7 @@ public class FormulaService {
                                 .filter(questionSet -> questionSet.getId().equals(questionId))
                                 .findFirst()
                                 .map(questionSet -> eligibilityQuestionsRepository.findByQuestion(questionSet.getQuestion()))
-                                .filter(eligibilityQuestions -> eligibilityQuestions != null && eligibilityQuestions.getHeading() != null)
+                                .filter(eligibilityQuestions -> eligibilityQuestions.getHeading() != null)
                                 .map(EligibilityQuestions::getHeading)
                                 .orElse(null))
                 .orElse(null);

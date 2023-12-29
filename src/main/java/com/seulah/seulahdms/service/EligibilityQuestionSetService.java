@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static com.seulah.seulahdms.utils.Constants.*;
 
@@ -203,7 +202,7 @@ public class EligibilityQuestionSetService {
                             textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), eligibilityQuestions.getField()));
 
                         }
-                    } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase("min&max")) {
+                    } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
                         if (processedMixMaxQuestionIds.add(question.getId())) {
                             minMaxResponse.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), null));
 
@@ -270,7 +269,7 @@ public class EligibilityQuestionSetService {
                                 processedTextQuestions.add(questionKey);
                                 questionSetResponse.getTextQuestions().add(questionValuePair);
                             }
-                        } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase("min&max")) {
+                        } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
                             if (!processedMinMaxQuestions.contains(questionKey)) {
                                 processedMinMaxQuestions.add(questionKey);
                                 questionSetResponse.getMinMaxQuestions().add(questionValuePair);
@@ -345,15 +344,31 @@ public class EligibilityQuestionSetService {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
-                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null) {
+                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null && !eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
                             List<String> normalizedAnswer = questionSet.getAnswer().stream()
                                     .map(String::toLowerCase)
-                                    .collect(Collectors.toList());
+                                    .toList();
 
                             String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
 
                             return normalizedAnswer.contains(normalizedUserAnswer);
+                        }
 
+                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null && eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
+                            List<Boolean> normalizedMinMaxAnswer = eligibilityQuestions.getOptions().stream()
+                                    .map(option -> {
+                                        int userAnswer = Integer.parseInt(questionSet.getUserAnswer().get(0));
+                                        int min = Integer.parseInt(eligibilityQuestions.getOptions().get(0));
+                                        int max = Integer.parseInt(eligibilityQuestions.getOptions().get(1));
+                                        return userAnswer > min && userAnswer < max;
+                                    })
+                                    .toList();
+                            for (boolean isTrue : normalizedMinMaxAnswer) {
+                                if (!isTrue) {
+                                    return false;
+                                }
+                            }
+                            return true;
                         }
                         return true;
                     });
