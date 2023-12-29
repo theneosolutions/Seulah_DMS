@@ -18,13 +18,15 @@ public class QuestionSetResponse {
     private List<QuestionValuePair> numericQuestions;
     private List<QuestionValuePair> textQuestions;
     private Set<QuestionValuePair> otherQuestions;
+    private Set<QuestionValuePair> minMaxQuestions;
 
-    public QuestionSetResponse(Long setId,Object formula,String setName) {
+    public QuestionSetResponse(Long setId, Object formula, String setName) {
         this.setId = setId;
         this.formula = formula;
-        this.setName=setName;
+        this.setName = setName;
         this.numericQuestions = new ArrayList<>();
         this.textQuestions = new ArrayList<>();
         this.otherQuestions = new HashSet<>();
+        this.minMaxQuestions = new HashSet<>();
     }
 }
