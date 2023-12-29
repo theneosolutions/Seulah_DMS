@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
 @RequestMapping("api/v1/dms/eligibilityQuestions")
 @Slf4j
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST})
 public class EligibilityQuestionsController {
 
     private final EligibilityQuestionsService eligibilityQuestionsService;

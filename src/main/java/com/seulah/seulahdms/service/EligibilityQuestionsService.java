@@ -14,8 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 
 @Service
 public class EligibilityQuestionsService {
@@ -35,13 +38,26 @@ public class EligibilityQuestionsService {
 
     public ResponseEntity<MessageResponse> saveQuestion(EligibilityQuestionsRequest eligibilityQuestionsRequest) {
 
-        EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByHeadingOrQuestion(eligibilityQuestionsRequest.getHeading(),eligibilityQuestionsRequest.getQuestion());
+        EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByHeadingOrQuestion(eligibilityQuestionsRequest.getHeading(), eligibilityQuestionsRequest.getQuestion());
         if (eligibilityQuestions == null) {
             eligibilityQuestions = new EligibilityQuestions();
             eligibilityQuestions.setQuestion(eligibilityQuestionsRequest.getQuestion());
             eligibilityQuestions.setType(eligibilityQuestionsRequest.getType());
             eligibilityQuestions.setHeading(eligibilityQuestionsRequest.getHeading());
-            eligibilityQuestions.setOptions(eligibilityQuestionsRequest.getOptions());
+            if (eligibilityQuestionsRequest.getType().equalsIgnoreCase("textBox")) {
+                eligibilityQuestions.setOptions(new ArrayList<>());
+                eligibilityQuestions.setField(eligibilityQuestionsRequest.getField());
+            } else {
+                eligibilityQuestions.setOptions(eligibilityQuestionsRequest.getOptions());
+                eligibilityQuestions.setField(null);
+            }
+
+            if (eligibilityQuestionsRequest.getLanguageCode() == null || eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
+                eligibilityQuestions.setLanguageCode("en");
+            } else {
+                eligibilityQuestions.setLanguageCode(eligibilityQuestionsRequest.getLanguageCode().toLowerCase());
+            }
+            eligibilityQuestions.setScreenName(eligibilityQuestionsRequest.getScreenName());
             eligibilityQuestions = eligibilityQuestionsRepository.save(eligibilityQuestions);
             return new ResponseEntity<>(new MessageResponse("Question Created Successfully", eligibilityQuestions, false), HttpStatus.CREATED);
 
@@ -63,7 +79,7 @@ public class EligibilityQuestionsService {
             eligibilityQuestionsRepository.delete(eligibilityQuestion);
 
             List<EligibilityQuestionSet> eligibilityQuestionSets = eligibilityQuestionSetRepository.findAll();
-            return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestionSets, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestionSets, false), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(new MessageResponse("EligibilityQuestions not found", null, true), HttpStatus.OK);
         }
@@ -72,13 +88,13 @@ public class EligibilityQuestionsService {
 
     public ResponseEntity<MessageResponse> getQuestions() {
         List<EligibilityQuestions> eligibilityQuestions = eligibilityQuestionsRepository.findAll();
-        return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestions, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestions, false), HttpStatus.OK);
     }
 
     public ResponseEntity<MessageResponse> getQuestionById(Long id) {
         Optional<EligibilityQuestions> eligibilityQuestions = eligibilityQuestionsRepository.findById(id);
         if (eligibilityQuestions.isPresent()) {
-            return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestions, false), HttpStatus.OK);
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestions, false), HttpStatus.OK);
         }
         return new ResponseEntity<>(new MessageResponse("No Record Found", eligibilityQuestions, false), HttpStatus.OK);
 
@@ -93,23 +109,29 @@ public class EligibilityQuestionsService {
             List<QuestionSet> questionSetList = questionSetRepository.findByQuestion(eligibilityQuestions.get().getQuestion());
 
             questionSetList.forEach(questionSet -> questionSet.setQuestion(eligibilityQuestionsRequest.getQuestion()));
-            if (eligibilityQuestionsRequest.getQuestion() != null && !eligibilityQuestionsRequest.getQuestion().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getQuestion().isEmpty()) {
                 eligibilityQuestions.get().setQuestion(eligibilityQuestionsRequest.getQuestion());
             }
-            if (eligibilityQuestionsRequest.getType() != null && !eligibilityQuestionsRequest.getType().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getType().isEmpty()) {
                 eligibilityQuestions.get().setType(eligibilityQuestionsRequest.getType());
             }
-            if (eligibilityQuestionsRequest.getHeading() != null && !eligibilityQuestionsRequest.getHeading().isEmpty()) {
+            if (!eligibilityQuestionsRequest.getHeading().isEmpty()) {
                 eligibilityQuestions.get().setHeading(eligibilityQuestionsRequest.getHeading());
             }
-            if (eligibilityQuestionsRequest.getQuestion() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {
+            if (eligibilityQuestionsRequest.getOptions() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {
                 eligibilityQuestions.get().setOptions(eligibilityQuestionsRequest.getOptions());
+            }
+            if (eligibilityQuestionsRequest.getScreenName() != null && !eligibilityQuestionsRequest.getScreenName().isEmpty()) {
+                eligibilityQuestions.get().setScreenName(eligibilityQuestionsRequest.getScreenName());
+            }
+            if (eligibilityQuestionsRequest.getLanguageCode() != null && !eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
+                eligibilityQuestions.get().setLanguageCode(eligibilityQuestionsRequest.getLanguageCode());
             }
 
         }
         EligibilityQuestions eligibilityQuestionsOptional = eligibilityQuestions.get();
         eligibilityQuestionsOptional = eligibilityQuestionsRepository.save(eligibilityQuestionsOptional);
-        return new ResponseEntity<>(new MessageResponse("Success", eligibilityQuestionsOptional, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, eligibilityQuestionsOptional, false), HttpStatus.OK);
     }
 
 }

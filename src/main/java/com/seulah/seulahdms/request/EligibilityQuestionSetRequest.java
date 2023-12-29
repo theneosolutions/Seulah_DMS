@@ -15,4 +15,6 @@ public class EligibilityQuestionSetRequest {
     @NotNull
     @NotBlank
     private String name;
+
+    private String screenName;
 }

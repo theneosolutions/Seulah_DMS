@@ -8,11 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
 @RequestMapping("api/v1/dms/questionSet")
 public class EligibilityQuestionSetController {
     private final EligibilityQuestionSetService eligibilityQuestionSetService;
@@ -82,9 +83,9 @@ public class EligibilityQuestionSetController {
 
     @PostMapping("/updateUserAnswer")
     @Operation(summary = "Update User Answer into the database on the base of setId and questionId")
-    public ResponseEntity<MessageResponse> updateUserAnswer(@RequestParam Long id, @RequestBody List<HashMap<String, List<String>>> userAnswersList ) {
-        log.info("Update User Answer in Question Sets By  and Set Id {},Answer  ,{}", id, userAnswersList);
-        return eligibilityQuestionSetService.updateUserAnswer(id, userAnswersList);
+    public ResponseEntity<MessageResponse> updateUserAnswer(@RequestParam Long id, @RequestBody List<Map<String, Object>> userInputList) {
+        log.info("Update User Answer in Question Sets By  and Set Id {},Answer  ,{}", id, userInputList);
+        return eligibilityQuestionSetService.updateUserAnswer(id, userInputList);
     }
 
     @GetMapping("/getQuestionByIdAndSetId")
@@ -104,8 +105,9 @@ public class EligibilityQuestionSetController {
 
     @GetMapping("/checkEligibility")
     @Operation(summary = "Checking Eligibility for user answer")
-    public ResponseEntity<AdminApiResponse> checkEligibility(@RequestParam Long setId,@RequestParam String userId) {
-        return eligibilityQuestionSetService.checkEligibility(setId,userId);
+    public ResponseEntity<AdminApiResponse> checkEligibility(@RequestParam Long setId, @RequestParam String userId) {
+        return eligibilityQuestionSetService.checkEligibility(setId, userId);
 
     }
+
 }

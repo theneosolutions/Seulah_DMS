@@ -5,12 +5,10 @@ import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.service.AdminApiResponseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
 @RequestMapping("api/v1/dms/apiResponse")
 @Slf4j
 public class AdminApiResponseController {
@@ -25,6 +23,19 @@ public class AdminApiResponseController {
     public ResponseEntity<MessageResponse> createAdminApiResponse(@RequestBody AdminApiResponseRequest adminApiResponseRequest) {
         log.info("Creating new admin api response");
         return adminApiResponseService.createAdminApiResponse(adminApiResponseRequest);
+
+    }
+
+    @GetMapping("getAllResponse")
+    public ResponseEntity<MessageResponse> getAllResponse() {
+        log.info("Getting admin api response");
+        return adminApiResponseService.getAllResponse();
+
+    }
+    @GetMapping("getAllResponseByLanguageCode")
+    public ResponseEntity<MessageResponse> getAllResponseByLanguageCode(@RequestParam String langCode) {
+        log.info("Getting admin api response by language code ,{}",langCode);
+        return adminApiResponseService.getAllResponseByLanguageCode(langCode);
 
     }
 }

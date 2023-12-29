@@ -27,9 +27,10 @@ public class Formula {
 
     private Boolean isEligible;
 
+    private String screenName;
+
     @OneToOne
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-//    @JoinColumn(name = "eligibility_question_set_id")
     private EligibilityQuestionSet eligibilityQuestionSet;
 
 }
