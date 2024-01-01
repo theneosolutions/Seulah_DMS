@@ -15,7 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("api/v1/dms/formula")
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000","http://localhost:3001","http://localhost:8085"}, maxAge = 3600, allowCredentials = "true")
 public class FormulaController {
 
     private final FormulaService formulaService;
