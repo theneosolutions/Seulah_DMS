@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.seulah.seulahdms.utils.Constants.*;
 
@@ -301,36 +302,41 @@ public class EligibilityQuestionSetService {
 
         EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
 
-        for (Map<String, Object> userInput : userInputList) {
-            for (Map.Entry<String, Object> entry : userInput.entrySet()) {
-                String questionId = entry.getKey();
-                Object answerOrInput = entry.getValue();
+        try {
+            for (Map<String, Object> userInput : userInputList) {
+                for (Map.Entry<String, Object> entry : userInput.entrySet()) {
+                    String questionId = entry.getKey();
+                    Object answerOrInput = entry.getValue();
 
-                Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(Long.valueOf(questionId));
+                    Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(Long.valueOf(questionId));
 
-                if (optionalQuestionSet.isPresent()) {
-                    QuestionSet questionSet = optionalQuestionSet.get();
+                    if (optionalQuestionSet.isPresent()) {
+                        QuestionSet questionSet = optionalQuestionSet.get();
 
-                    if (answerOrInput instanceof List) {
-                        List<String> answers = (List<String>) answerOrInput;
-                        questionSet.setUserAnswer(answers);
-                    } else if (answerOrInput instanceof Integer) {
-                        String answer = String.valueOf(answerOrInput);
-                        List<String> answers = new ArrayList<>();
-                        answers.add(answer);
-                        questionSet.setUserAnswer(answers);
+                        if (answerOrInput instanceof List) {
+                            List<String> answers = ((List<?>) answerOrInput).stream()
+                                    .map(Object::toString)
+                                    .collect(Collectors.toList());
+                            questionSet.setUserAnswer(answers);
+                        } else if (answerOrInput instanceof Integer) {
+                            String answer = String.valueOf(answerOrInput);
+                            List<String> answers = Collections.singletonList(answer);
+                            questionSet.setUserAnswer(answers);
+                        }
+
+                        questionSetRepository.save(questionSet);
+                    } else {
+                        return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
                     }
-
-                    eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
-                    questionSetRepository.save(questionSet);
-                    log.info("Question set not found against this id {}", id);
-                } else {
-                    return new ResponseEntity<>(new MessageResponse("QuestionSet not found with id: " + questionId, null, false), HttpStatus.NOT_FOUND);
                 }
             }
-        }
 
-        return new ResponseEntity<>(new MessageResponse("Answers Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
+            eligibilityQuestionSetRepository.save(eligibilityQuestionSet);
+            return new ResponseEntity<>(new MessageResponse("Answers Updated Successfully", eligibilityQuestionSet, false), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Exception", e);
+            return new ResponseEntity<>(new MessageResponse("Error updating answers", null, false), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -397,6 +403,7 @@ public class EligibilityQuestionSetService {
         return eligibilityQuestions.getOptions().stream()
                 .allMatch(option -> userAnswer > min && userAnswer < max);
     }
+
     private boolean checkNormalAnswer(QuestionSet questionSet) {
         List<String> normalizedAnswer = questionSet.getAnswer().stream()
                 .map(String::toLowerCase)
