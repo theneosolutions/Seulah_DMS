@@ -344,68 +344,67 @@ public class EligibilityQuestionSetService {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
-                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null && !eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
-                            List<String> normalizedAnswer = questionSet.getAnswer().stream()
-                                    .map(String::toLowerCase)
-                                    .toList();
-
-                            String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
-
-                            return normalizedAnswer.contains(normalizedUserAnswer);
-                        }
-
-                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null && eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
-                            List<Boolean> normalizedMinMaxAnswer = eligibilityQuestions.getOptions().stream()
-                                    .map(option -> {
-                                        int userAnswer = Integer.parseInt(questionSet.getUserAnswer().get(0));
-                                        int min = Integer.parseInt(eligibilityQuestions.getOptions().get(0));
-                                        int max = Integer.parseInt(eligibilityQuestions.getOptions().get(1));
-                                        return userAnswer > min && userAnswer < max;
-                                    })
-                                    .toList();
-                            for (boolean isTrue : normalizedMinMaxAnswer) {
-                                if (!isTrue) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-                        return true;
+                        return eligibilityQuestions != null &&
+                                eligibilityQuestions.getField() == null &&
+                                (!eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX) ?
+                                        checkNormalAnswer(questionSet) : checkMinMaxAnswer(questionSet, eligibilityQuestions));
                     });
 
             Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
-            ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
-            if (answersMatch) {
-                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
-                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId, null), HttpStatus.OK));
-
-                EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
-                if (eligibilityResult != null) {
-                    eligibilityResult.setOtherQuestionEligibility(Boolean.TRUE);
-                    if (eligibilityResult.getNumericQuestionEligibility().equals(Boolean.FALSE)) {
-                        eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
-                        mongoTemplate.save(eligibilityResult);
-                    } else {
-                        eligibilityResult.setUserVerifiedType(UserVerifiedType.VERIFIED);
-                    }
-                    eligibilityResultRepository.save(eligibilityResult);
-                }
-            } else {
-                adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
-                        .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId, null), HttpStatus.OK));
-
-                EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
-                if (eligibilityResult != null) {
-                    eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
-                    eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
-                    eligibilityResultRepository.save(eligibilityResult);
-                    mongoTemplate.save(eligibilityResult);
-                }
-            }
-            return adminApiResponseResponseEntity;
+            return getAdminApiResponseResponseEntity(setId, userId, answersMatch, adminApiResponse);
         }
 
         return new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId, null), HttpStatus.OK);
+    }
+
+    private ResponseEntity<AdminApiResponse> getAdminApiResponseResponseEntity(Long setId, String userId, boolean answersMatch, Optional<AdminApiResponse> adminApiResponse) {
+        ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
+        if (answersMatch) {
+            adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId, null), HttpStatus.OK));
+
+            EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
+            if (eligibilityResult != null) {
+                eligibilityResult.setOtherQuestionEligibility(Boolean.TRUE);
+                if (eligibilityResult.getNumericQuestionEligibility().equals(Boolean.FALSE)) {
+                    eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
+                    mongoTemplate.save(eligibilityResult);
+                } else {
+                    eligibilityResult.setUserVerifiedType(UserVerifiedType.VERIFIED);
+                }
+                eligibilityResultRepository.save(eligibilityResult);
+            }
+        } else {
+            adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), null, null, null, apiResponse.getErrorMessage(), apiResponse.getErrorImage(), apiResponse.getErrorDescription(), false, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, false, setId, null), HttpStatus.OK));
+
+            EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
+            if (eligibilityResult != null) {
+                eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
+                eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
+                eligibilityResultRepository.save(eligibilityResult);
+                mongoTemplate.save(eligibilityResult);
+            }
+        }
+        return adminApiResponseResponseEntity;
+    }
+
+    private boolean checkMinMaxAnswer(QuestionSet questionSet, EligibilityQuestions eligibilityQuestions) {
+        int userAnswer = Integer.parseInt(questionSet.getUserAnswer().get(0));
+        int min = Integer.parseInt(eligibilityQuestions.getOptions().get(0));
+        int max = Integer.parseInt(eligibilityQuestions.getOptions().get(1));
+
+        return eligibilityQuestions.getOptions().stream()
+                .allMatch(option -> userAnswer > min && userAnswer < max);
+    }
+    private boolean checkNormalAnswer(QuestionSet questionSet) {
+        List<String> normalizedAnswer = questionSet.getAnswer().stream()
+                .map(String::toLowerCase)
+                .toList();
+
+        String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
+
+        return normalizedAnswer.contains(normalizedUserAnswer);
     }
 
 }
