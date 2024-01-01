@@ -41,6 +41,11 @@ public class AdminApiResponseService {
 
     private static AdminApiResponse getAdminApiResponse(AdminApiResponseRequest adminApiResponseRequest) {
         AdminApiResponse adminApiResponse = new AdminApiResponse();
+        if (adminApiResponseRequest.getLanguageCode() == null || adminApiResponseRequest.getLanguageCode().isEmpty()) {
+            adminApiResponse.setLanguageCode("en");
+        } else {
+            adminApiResponse.setLanguageCode(adminApiResponseRequest.getLanguageCode());
+        }
         adminApiResponse.setSetId(adminApiResponseRequest.getSetId());
         adminApiResponse.setErrorImage(adminApiResponseRequest.getErrorImage());
         adminApiResponse.setErrorDescription(adminApiResponseRequest.getErrorDescription());
@@ -55,5 +60,10 @@ public class AdminApiResponseService {
         List<AdminApiResponse> adminApiResponseList = adminApiResponseRepository.findAll();
         log.info("Get all admin api response");
         return new ResponseEntity<>(new MessageResponse("Success", adminApiResponseList, false), HttpStatus.OK);
+    }
+
+    public ResponseEntity<MessageResponse> getAllResponseByLanguageCode(String langCode) {
+        List<AdminApiResponse> adminApiResponseList = adminApiResponseRepository.findByLanguageCode(langCode);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, adminApiResponseList, false), HttpStatus.OK);
     }
 }

@@ -1,8 +1,11 @@
 package com.seulah.seulahdms.entity;
 
-import javax.persistence.*;
-
 import lombok.*;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 @Entity
 @Getter
@@ -25,4 +28,6 @@ public class AdminApiResponse {
     private Boolean isEligible;
 
     private Long setId;
+
+    private String languageCode;
 }

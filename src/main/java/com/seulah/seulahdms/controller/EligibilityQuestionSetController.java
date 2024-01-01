@@ -25,9 +25,9 @@ public class EligibilityQuestionSetController {
 
     @PostMapping("/saveSet")
     @Operation(summary = "Save The Question into the QuestionSet")
-    public ResponseEntity<MessageResponse> saveSet(@RequestParam String setName,@RequestParam(required = false) String screenName, @RequestBody List<Long> questionIds) {
+    public ResponseEntity<MessageResponse> saveSet(@RequestParam String setName, @RequestBody List<Long> questionIds) {
         log.info("Save New Question in Set By Question Ids ,{},{}", setName, questionIds);
-        return eligibilityQuestionSetService.saveQuestionSet(setName,screenName, questionIds);
+        return eligibilityQuestionSetService.saveQuestionSet(setName, questionIds);
     }
 
     @GetMapping("/getQuestionSetById")
