@@ -19,22 +19,23 @@ public class AdminApiResponseController {
         this.adminApiResponseService = adminApiResponseService;
     }
 
-    @PostMapping("create")
+    @PostMapping("/create")
     public ResponseEntity<MessageResponse> createAdminApiResponse(@RequestBody AdminApiResponseRequest adminApiResponseRequest) {
         log.info("Creating new admin api response");
         return adminApiResponseService.createAdminApiResponse(adminApiResponseRequest);
 
     }
 
-    @GetMapping("getAllResponse")
+    @GetMapping("/getAllResponse")
     public ResponseEntity<MessageResponse> getAllResponse() {
         log.info("Getting admin api response");
         return adminApiResponseService.getAllResponse();
 
     }
-    @GetMapping("getAllResponseByLanguageCode")
+
+    @GetMapping("/getAllResponseByLanguageCode")
     public ResponseEntity<MessageResponse> getAllResponseByLanguageCode(@RequestParam String langCode) {
-        log.info("Getting admin api response by language code ,{}",langCode);
+        log.info("Getting admin api response by language code ,{}", langCode);
         return adminApiResponseService.getAllResponseByLanguageCode(langCode);
 
     }
