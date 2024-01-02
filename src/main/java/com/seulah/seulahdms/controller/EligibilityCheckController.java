@@ -45,8 +45,8 @@ public class EligibilityCheckController {
         ResponseEntity<AdminApiResponse> eligibilityResponse = eligibilityQuestionSetService.checkEligibility(setId, userId);
         ResponseEntity<MessageResponse> userEligibility = formulaService.userEligibility(userId);
         HashMap<String, Object> response = new HashMap<>();
-        response.put("Eligibility Response", eligibilityResponse);
-        response.put("User Eligibility", userEligibility);
+        response.put("eligibility_response", eligibilityResponse);
+        response.put("user_eligibility", userEligibility);
 
         return new ResponseEntity<>(new MessageResponse("Combined Operation Successful", response, false), HttpStatus.OK);
     }
