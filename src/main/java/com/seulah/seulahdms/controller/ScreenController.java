@@ -1,6 +1,7 @@
 package com.seulah.seulahdms.controller;
 
 
+import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
 import com.seulah.seulahdms.service.ScreenService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class ScreenController {
         return screenService.getQuestionCheck(questionId);
     }
     @GetMapping("/getScreenBySetId")
-    public ResponseEntity<?> getScreenBySetId(@RequestParam Long setId) {
+    public ResponseEntity<MessageResponse> getScreenBySetId(@RequestParam Long setId) {
         log.info("Getting all screen by set id {}", setId);
         return screenService.getScreenBySetId(setId);
     }

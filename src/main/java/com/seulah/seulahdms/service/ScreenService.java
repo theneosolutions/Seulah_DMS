@@ -1,22 +1,33 @@
 package com.seulah.seulahdms.service;
 
+import com.seulah.seulahdms.entity.EligibilityQuestions;
 import com.seulah.seulahdms.entity.ScreenName;
+import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
 import com.seulah.seulahdms.repository.ScreenRepository;
+import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
 import com.seulah.seulahdms.response.ScreenResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 
 @Service
 public class ScreenService {
     private final ScreenRepository screenRepository;
     ScreenResponse sc;
+    private final EligibilityQuestionsRepository eligibilityQuestionsRepository;
 
-    public ScreenService(ScreenRepository screenRepository) {
+    public ScreenService(ScreenRepository screenRepository,
+                         EligibilityQuestionsRepository eligibilityQuestionsRepository) {
         this.screenRepository = screenRepository;
+        this.eligibilityQuestionsRepository = eligibilityQuestionsRepository;
     }
 
     public ResponseEntity<?> addScreen(ScreenRequest screenRequest) {
@@ -56,8 +67,18 @@ public class ScreenService {
         }
     }
 
-    public ResponseEntity<?> getScreenBySetId(Long setId) {
+    public ResponseEntity<MessageResponse> getScreenBySetId(Long setId) {
         List<ScreenName> screenNames = screenRepository.findBySetId(setId);
-        return ResponseEntity.ok().body(screenNames);
+        Map<String, List<Object>> map = new HashMap<>();
+
+        screenNames.forEach(screenName -> {
+            List<Object> questionList = new ArrayList<>();
+            eligibilityQuestionsRepository.findById(screenName.getQuestionIds()).ifPresent(questionList::add);
+
+            map.put(screenName.getScreenHeading(), questionList);
+        });
+
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
+
 }
