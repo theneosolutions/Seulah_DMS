@@ -55,4 +55,9 @@ public class ScreenService {
             return ResponseEntity.badRequest().body(sc);
         }
     }
+
+    public ResponseEntity<?> getScreenBySetId(Long setId) {
+        List<ScreenName> screenNames = screenRepository.findBySetId(setId);
+        return ResponseEntity.ok().body(screenNames);
+    }
 }

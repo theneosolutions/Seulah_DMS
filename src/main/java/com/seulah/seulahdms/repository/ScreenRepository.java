@@ -14,4 +14,6 @@ public interface ScreenRepository extends JpaRepository<ScreenName, Long> {
     boolean existsByQuestionIds(Long questionIds);
 
     List<ScreenName> findByQuestionIds(Long questionIds);
+
+    List<ScreenName> findBySetId(Long setId);
 }

@@ -34,4 +34,9 @@ public class ScreenController {
         log.info("Question Check In Screen {}", questionId);
         return screenService.getQuestionCheck(questionId);
     }
+    @GetMapping("/getScreenBySetId")
+    public ResponseEntity<?> getScreenBySetId(@RequestParam Long setId) {
+        log.info("Getting all screen by set id {}", setId);
+        return screenService.getScreenBySetId(setId);
+    }
 }

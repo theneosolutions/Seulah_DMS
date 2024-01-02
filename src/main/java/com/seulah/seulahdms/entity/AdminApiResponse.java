@@ -2,10 +2,7 @@ package com.seulah.seulahdms.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -19,9 +16,11 @@ public class AdminApiResponse {
     private Long id;
 
     private String successMessage;
+    @Lob
     private String successImage;
     private String successDescription;
     private String errorMessage;
+    @Lob
     private String errorImage;
     private String errorDescription;
 
