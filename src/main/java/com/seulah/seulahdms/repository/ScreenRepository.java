@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ScreenRepository extends JpaRepository<ScreenName, Long> {
     ScreenName findByScreenHeading(String screenHeading);
+    boolean existsByQuestionIds(Long questionIds);
+    ScreenName findByQuestionIds(String questionId);
 }

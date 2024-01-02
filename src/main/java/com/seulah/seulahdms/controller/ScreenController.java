@@ -28,4 +28,10 @@ public class ScreenController {
         log.info("Get Screen {}", screenHeading);
         return ResponseEntity.ok().body(screenService.getScreen());
     }
+
+    @GetMapping("/questionCheckInScreen")
+    public ResponseEntity<?> questionCheckInScreen(@RequestParam String questionId) {
+        log.info("Question Check In Screen {}", questionId);
+        return screenService.getQuestionCheck(questionId);
+    }
 }
