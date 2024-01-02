@@ -349,10 +349,16 @@ public class EligibilityQuestionSetService {
                     .allMatch(questionSet -> {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
-
-                        return eligibilityQuestions != null &&
-                                (eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX) ?
-                                        checkMinMaxAnswer(questionSet, eligibilityQuestions) : checkNormalAnswer(questionSet));
+                        boolean minMaxQuestion = true;
+                        boolean normalQuestionEligibility = true;
+                        if (eligibilityQuestions != null && eligibilityQuestions.getField() == null) {
+                            if (eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
+                                minMaxQuestion = checkMinMaxAnswer(questionSet, eligibilityQuestions);
+                            } else {
+                                normalQuestionEligibility = checkNormalAnswer(questionSet);
+                            }
+                        }
+                        return minMaxQuestion && normalQuestionEligibility;
                     });
 
 
