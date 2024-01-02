@@ -31,6 +31,7 @@ public class EligibilityQuestionSetService {
 
     private final EligibilityResultRepository eligibilityResultRepository;
 
+
     private final MongoTemplate mongoTemplate;
 
     public EligibilityQuestionSetService(EligibilityQuestionSetRepository eligibilityQuestionSetRepository, EligibilityQuestionsRepository eligibilityQuestionsRepository, QuestionSetRepository questionSetRepository, AdminApiResponseRepository adminApiResponseRepository, EligibilityResultRepository eligibilityResultRepository, MongoTemplate mongoTemplate) {
@@ -371,7 +372,12 @@ public class EligibilityQuestionSetService {
 
     private ResponseEntity<AdminApiResponse> getAdminApiResponseResponseEntity(Long setId, String userId, boolean answersMatch, Optional<AdminApiResponse> adminApiResponse) {
         ResponseEntity<AdminApiResponse> adminApiResponseResponseEntity;
-        if (answersMatch) {
+        boolean numericResponse = true;
+        EligibilityResult eligibilityResults = eligibilityResultRepository.findByUserId(userId);
+        if (eligibilityResults != null) {
+            numericResponse = eligibilityResults.getNumericQuestionEligibility();
+        }
+        if (answersMatch && numericResponse) {
             adminApiResponseResponseEntity = adminApiResponse.map(apiResponse -> new ResponseEntity<>(new AdminApiResponse(apiResponse.getId(), apiResponse.getSuccessMessage(), apiResponse.getSuccessImage(), apiResponse.getSuccessDescription(), null, null, null, true, setId, apiResponse.getLanguageCode()), HttpStatus.OK))
                     .orElseGet(() -> new ResponseEntity<>(new AdminApiResponse(0L, null, null, null, null, null, null, true, setId, null), HttpStatus.OK));
 
@@ -392,7 +398,11 @@ public class EligibilityQuestionSetService {
 
             EligibilityResult eligibilityResult = eligibilityResultRepository.findByUserId(userId);
             if (eligibilityResult != null) {
-                eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
+                if (answersMatch) {
+                    eligibilityResult.setOtherQuestionEligibility(Boolean.TRUE);
+                } else {
+                    eligibilityResult.setOtherQuestionEligibility(Boolean.FALSE);
+                }
                 eligibilityResult.setUserVerifiedType(UserVerifiedType.DUMP);
                 eligibilityResultRepository.save(eligibilityResult);
                 mongoTemplate.save(eligibilityResult);
