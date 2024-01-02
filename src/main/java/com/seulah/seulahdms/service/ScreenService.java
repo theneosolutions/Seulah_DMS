@@ -1,7 +1,6 @@
 package com.seulah.seulahdms.service;
 
 import com.seulah.seulahdms.entity.ScreenName;
-import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
 import com.seulah.seulahdms.repository.ScreenRepository;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
@@ -21,13 +20,13 @@ import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 public class ScreenService {
     private final ScreenRepository screenRepository;
     ScreenResponse sc;
-    private final EligibilityQuestionsRepository eligibilityQuestionsRepository;
+    private final EligibilityQuestionSetService eligibilityQuestionSetService;
 
-    public ScreenService(ScreenRepository screenRepository,
-                         EligibilityQuestionsRepository eligibilityQuestionsRepository) {
+    public ScreenService(ScreenRepository screenRepository, EligibilityQuestionSetService eligibilityQuestionSetService) {
         this.screenRepository = screenRepository;
-        this.eligibilityQuestionsRepository = eligibilityQuestionsRepository;
+        this.eligibilityQuestionSetService = eligibilityQuestionSetService;
     }
+
 
     public ResponseEntity<MessageResponse> addScreen(ScreenRequest screenRequest) {
         if (screenRequest == null) {
@@ -79,13 +78,20 @@ public class ScreenService {
         Map<String, List<Object>> map = new HashMap<>();
 
         screenNames.forEach(screenName -> {
-            List<Object> questionList = new ArrayList<>();
-            eligibilityQuestionsRepository.findById(screenName.getQuestionIds()).ifPresent(questionList::add);
+            String screenHeading = screenName.getScreenHeading();
+            List<Object> questionList = map.getOrDefault(screenHeading, new ArrayList<>());
 
-            map.put(screenName.getScreenHeading(), questionList);
+            ResponseEntity<MessageResponse> questionResponse = eligibilityQuestionSetService.getQuestionByIdAndSetId(screenName.getQuestionIds(), setId);
+
+            if (questionResponse.getStatusCode() == HttpStatus.OK) {
+                questionList.add(questionResponse.getBody());
+            }
+
+            map.put(screenHeading, questionList);
         });
 
         return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
+
 
 }
