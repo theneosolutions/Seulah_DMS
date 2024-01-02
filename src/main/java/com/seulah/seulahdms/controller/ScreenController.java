@@ -20,7 +20,7 @@ public class ScreenController {
     }
 
     @PostMapping("/addQuestion")
-    public ResponseEntity<?> addScreen(@RequestBody ScreenRequest screenRequest) {
+    public ResponseEntity<MessageResponse> addScreen(@RequestBody ScreenRequest screenRequest) {
         log.info("Adding Screen and Questions {}", screenRequest);
         return screenService.addScreen(screenRequest);
     }

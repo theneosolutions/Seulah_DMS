@@ -1,6 +1,5 @@
 package com.seulah.seulahdms.service;
 
-import com.seulah.seulahdms.entity.EligibilityQuestions;
 import com.seulah.seulahdms.entity.ScreenName;
 import com.seulah.seulahdms.repository.EligibilityQuestionsRepository;
 import com.seulah.seulahdms.repository.ScreenRepository;
@@ -30,21 +29,29 @@ public class ScreenService {
         this.eligibilityQuestionsRepository = eligibilityQuestionsRepository;
     }
 
-    public ResponseEntity<?> addScreen(ScreenRequest screenRequest) {
-        if (screenRequest != null) {
-            ScreenName screenName = new ScreenName();
-            for (Long id : screenRequest.getQuestionIds()) {
-                screenName.setScreenHeading(screenRequest.getScreenHeading());
-                screenName.setSetId(screenRequest.getSetId());
-                screenName.setQuestionIds(id);
-                screenRepository.save(screenName);
-            }
+    public ResponseEntity<MessageResponse> addScreen(ScreenRequest screenRequest) {
+        if (screenRequest == null) {
+            return new ResponseEntity<>(new MessageResponse(null, null, false), HttpStatus.BAD_REQUEST);
+        }
+        List<Long> questionIds = screenRequest.getQuestionIds();
+        if (questionIds != null && !questionIds.isEmpty()) {
+            List<ScreenName> screenNames = questionIds.stream()
+                    .map(id -> {
+                        ScreenName screenName = new ScreenName();
+                        screenName.setScreenHeading(screenRequest.getScreenHeading());
+                        screenName.setSetId(screenRequest.getSetId());
+                        screenName.setQuestionIds(id);
+                        return screenName;
+                    }).toList();
 
+            screenRepository.saveAll(screenNames);
+
+            return new ResponseEntity<>(new MessageResponse(SUCCESS, screenNames, false), HttpStatus.OK);
         }
 
-        return ResponseEntity.ok().body(null);
-
+        return new ResponseEntity<>(new MessageResponse(null, null, false), HttpStatus.BAD_REQUEST);
     }
+
 
     public ScreenName getScreen() {
         return screenRepository.findByScreenHeading("home");
