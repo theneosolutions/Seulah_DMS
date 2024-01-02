@@ -115,13 +115,25 @@ public class FormulaService {
             List<String> formulaHeadings = formula.getFormula();
             List<Map<String, Double>> filteredUserInputList = userInputList.stream()
                     .map(map -> map.entrySet().stream()
-                            .filter(entry -> entry.getValue() instanceof Number)
+                            .filter(entry -> entry.getValue() instanceof List) // Check if the value is a list
+                            .filter(entry -> {
+                                List<?> values = (List<?>) entry.getValue();
+                                return !values.isEmpty() && values.get(0) instanceof Number;
+                            })
+                            .filter(entry -> {
+                                String questionHeading = getTrimmedQuestionHeadingByIdAndSetId(setId, Long.valueOf(entry.getKey()));
+                                return formulaHeadings.contains(questionHeading);
+                            })
                             .collect(Collectors.toMap(
-                                    keyEntry -> getQuestionHeadingByIdAndSetId(setId, Long.valueOf(keyEntry.getKey())),
-                                    valueEntry -> handleDynamicValue(valueEntry.getValue()),
-                                    (existing, replacement) -> existing != null ? existing : replacement
+                                    keyEntry -> getTrimmedQuestionHeadingByIdAndSetId(setId, Long.valueOf(keyEntry.getKey())),
+                                    valueEntry -> {
+                                        List<?> values = (List<?>) valueEntry.getValue();
+                                        return handleDynamicValue(!values.isEmpty() ? values.get(0) : null);
+                                    },
+                                    (existing, replacement) -> existing
                             )))
                     .collect(Collectors.toList());
+
             double result = calculateDynamicFormula(formulaHeadings, filteredUserInputList);
 
             Map<String, Object> responseData = new HashMap<>();
@@ -146,8 +158,7 @@ public class FormulaService {
             return new ResponseEntity<>(new MessageResponse(e.getMessage(), null, false), HttpStatus.BAD_REQUEST);
         }
     }
-
-    public String getQuestionHeadingByIdAndSetId(Long setId, Long questionId) {
+    private String getTrimmedQuestionHeadingByIdAndSetId(Long setId, Long questionId) {
         return eligibilityQuestionSetRepository.findById(setId)
                 .map(eligibilityQuestionSet ->
                         eligibilityQuestionSet.getQuestions().stream()
@@ -155,7 +166,7 @@ public class FormulaService {
                                 .findFirst()
                                 .map(questionSet -> eligibilityQuestionsRepository.findByQuestion(questionSet.getQuestion()))
                                 .filter(eligibilityQuestions -> eligibilityQuestions.getHeading() != null)
-                                .map(EligibilityQuestions::getHeading)
+                                .map(eligibilityQuestions -> eligibilityQuestions.getHeading())
                                 .orElse(null))
                 .orElse(null);
     }
