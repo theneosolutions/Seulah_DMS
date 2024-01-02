@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import static com.seulah.seulahdms.utils.Constants.NO_RECORD_FOUND;
 import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 
 @Service
@@ -58,7 +59,6 @@ public class AdminApiResponseService {
     }
 
 
-
     public ResponseEntity<MessageResponse> getAllResponse() {
         List<AdminApiResponse> adminApiResponseList = adminApiResponseRepository.findAll();
         log.info("Get all admin api response");
@@ -68,5 +68,10 @@ public class AdminApiResponseService {
     public ResponseEntity<MessageResponse> getAllResponseByLanguageCode(String langCode) {
         List<AdminApiResponse> adminApiResponseList = adminApiResponseRepository.findByLanguageCode(langCode);
         return new ResponseEntity<>(new MessageResponse(SUCCESS, adminApiResponseList, false), HttpStatus.OK);
+    }
+
+    public ResponseEntity<MessageResponse> getResponseBySetId(Long setId) {
+        Optional<AdminApiResponse> adminApiResponseOptional = adminApiResponseRepository.findBySetId(setId);
+        return adminApiResponseOptional.map(adminApiResponse -> new ResponseEntity<>(new MessageResponse(SUCCESS, adminApiResponse, false), HttpStatus.OK)).orElse(new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST));
     }
 }
