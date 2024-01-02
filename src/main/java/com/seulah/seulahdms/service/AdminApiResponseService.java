@@ -31,16 +31,15 @@ public class AdminApiResponseService {
     public ResponseEntity<MessageResponse> createAdminApiResponse(AdminApiResponseRequest adminApiResponseRequest) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(adminApiResponseRequest.getSetId());
         if (eligibilityQuestionSet.isPresent()) {
-            AdminApiResponse adminApiResponse = getAdminApiResponse(adminApiResponseRequest);
-            adminApiResponse = adminApiResponseRepository.save(adminApiResponse);
-            log.info("Saved admin api response successfully {}", adminApiResponse);
-            return new ResponseEntity<>(new MessageResponse(SUCCESS, adminApiResponse, false), HttpStatus.CREATED);
+            Optional<AdminApiResponse> adminApiResponseOptional = adminApiResponseRepository.findBySetId(adminApiResponseRequest.getSetId());
+            AdminApiResponse adminApiResponse;
+            adminApiResponse = adminApiResponseOptional.orElseGet(AdminApiResponse::new);
+            return getMessageResponseResponseEntity(adminApiResponseRequest, adminApiResponse);
         }
         return new ResponseEntity<>(new MessageResponse("Invalid Set Id", null, false), HttpStatus.CREATED);
     }
 
-    private static AdminApiResponse getAdminApiResponse(AdminApiResponseRequest adminApiResponseRequest) {
-        AdminApiResponse adminApiResponse = new AdminApiResponse();
+    private ResponseEntity<MessageResponse> getMessageResponseResponseEntity(AdminApiResponseRequest adminApiResponseRequest, AdminApiResponse adminApiResponse) {
         if (adminApiResponseRequest.getLanguageCode() == null || adminApiResponseRequest.getLanguageCode().isEmpty()) {
             adminApiResponse.setLanguageCode("en");
         } else {
@@ -53,8 +52,12 @@ public class AdminApiResponseService {
         adminApiResponse.setSuccessDescription(adminApiResponseRequest.getSuccessDescription());
         adminApiResponse.setSuccessMessage(adminApiResponseRequest.getSuccessMessage());
         adminApiResponse.setErrorMessage(adminApiResponseRequest.getErrorMessage());
-        return adminApiResponse;
+        adminApiResponse = adminApiResponseRepository.save(adminApiResponse);
+        log.info("Saved admin api response successfully {}", adminApiResponse);
+        return new ResponseEntity<>(new MessageResponse(SUCCESS, adminApiResponse, false), HttpStatus.CREATED);
     }
+
+
 
     public ResponseEntity<MessageResponse> getAllResponse() {
         List<AdminApiResponse> adminApiResponseList = adminApiResponseRepository.findAll();
