@@ -345,16 +345,16 @@ public class EligibilityQuestionSetService {
         if (optionalEligibilityQuestionSet.isPresent()) {
             EligibilityQuestionSet eligibilityQuestionSet = optionalEligibilityQuestionSet.get();
 
-            boolean answersMatch = eligibilityQuestionSet.getQuestions().stream()
+            boolean answersMatch = eligibilityQuestionSet.getQuestions().isEmpty() || eligibilityQuestionSet.getQuestions().stream()
                     .allMatch(questionSet -> {
                         String questionText = questionSet.getQuestion();
                         EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(questionText);
 
                         return eligibilityQuestions != null &&
-                                eligibilityQuestions.getField() == null &&
-                                (!eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX) ?
-                                        checkNormalAnswer(questionSet) : checkMinMaxAnswer(questionSet, eligibilityQuestions));
+                                (eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX) ?
+                                        checkMinMaxAnswer(questionSet, eligibilityQuestions) : checkNormalAnswer(questionSet));
                     });
+
 
             Optional<AdminApiResponse> adminApiResponse = adminApiResponseRepository.findBySetId(setId);
             return getAdminApiResponseResponseEntity(setId, userId, answersMatch, adminApiResponse);
