@@ -39,4 +39,9 @@ public class AdminApiResponseController {
         return adminApiResponseService.getAllResponseByLanguageCode(langCode);
 
     }
+    @GetMapping("/getResponseBySetId")
+    public ResponseEntity<MessageResponse> getResponseBySetId(@RequestParam Long setId) {
+        log.info("Getting admin api response by set id ,{}", setId);
+        return adminApiResponseService.getResponseBySetId(setId);
+    }
 }
