@@ -7,16 +7,10 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class AdminApiResponseRequest {
-
-    private String successMessage;
+public class ErrorImageUploadRequest {
+    private Long setId;
+    private String languageCode;
     private String errorMessage;
-    private String successImage;
-    private String successDescription;
     private String errorImage;
     private String errorDescription;
-
-    private Long setId;
-
-    private String languageCode;
 }

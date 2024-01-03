@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${db_url:jdbc:mysql://localhost:3306/seulahDms?createDatabaseIfNotExist=true}
     username: ${db_username:root}
-    password: ${db_password:1124}
+    password: ${db_password:root123}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     mongodb:
@@ -45,6 +45,16 @@ eureka:
     ip-address: true
 
 
-
-
+cloud:
+  aws:
+    credentials:
+      access-key: ${access_key}
+      secret-key: ${secret_key}
+    region:
+      static: ${s3_region}
+    stack:
+      auto: false
+application:
+  bucket:
+    name: seulahbucket
 
