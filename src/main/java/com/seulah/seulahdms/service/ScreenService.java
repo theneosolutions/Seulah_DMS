@@ -128,6 +128,7 @@ public class ScreenService {
                     EligibilityQuestions eligibilityQuestion = eligibilityQuestionsRepository.findByQuestion(question);
                     Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(screenName.getQuestionIds());
                     Map<String, Object> combinedObject = new HashMap<>();
+                    combinedObject.put("setId", setId);
                     combinedObject.put("id", eligibilityQuestion.getId());
                     combinedObject.put("heading", eligibilityQuestion.getHeading());
                     combinedObject.put("question", eligibilityQuestion.getQuestion());
@@ -146,7 +147,19 @@ public class ScreenService {
             return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.OK);
+        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST);
+    }
+    public List<ResponseEntity<MessageResponse>> getAllScreenWithQuestionDetail() {
+        List<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findAll();
+        List<ResponseEntity<MessageResponse>> responses = new ArrayList<>();
+
+        eligibilityQuestionSet.forEach(set -> {
+            List<ScreenName> screenNameList = screenRepository.findBySetId(set.getId());
+            if (!screenNameList.isEmpty()) {
+                responses.add(getScreenWithQuestionDetailBySetId(set.getId()));
+            }
+        });
+        return responses;
     }
 
 

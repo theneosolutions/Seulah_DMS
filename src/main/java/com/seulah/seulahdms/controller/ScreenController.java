@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("api/v1/dms/screen")
@@ -24,6 +26,7 @@ public class ScreenController {
         log.info("Adding Screen and Questions {}", screenRequest);
         return screenService.addScreen(screenRequest);
     }
+
     @GetMapping("/getScreen")
     public ResponseEntity<?> getScreen(@RequestParam String screenHeading) {
         log.info("Get Screen {}", screenHeading);
@@ -35,15 +38,23 @@ public class ScreenController {
         log.info("Question Check In Screen {}", questionId);
         return screenService.getQuestionCheck(questionId);
     }
+
     @GetMapping("/getScreenBySetId")
     public ResponseEntity<MessageResponse> getScreenBySetId(@RequestParam Long setId) {
         log.info("Getting all screen by set id {}", setId);
         return screenService.getScreenBySetId(setId);
     }
+
     @GetMapping("/getScreenWithQuestionDetailBySetId")
     public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(@RequestParam Long setId) {
-        log.info("Getting all screen with question detail by set id {}", setId);
+        log.info("Getting screen with question detail by set id {}", setId);
         return screenService.getScreenWithQuestionDetailBySetId(setId);
+    }
+
+    @GetMapping("/getAllScreenWithQuestionDetail")
+    public List<ResponseEntity<MessageResponse>> getAllScreenWithQuestionDetail() {
+        log.info("Getting all screen with question detail ");
+        return screenService.getAllScreenWithQuestionDetail();
     }
 
 }
