@@ -80,7 +80,6 @@ public class EligibilityQuestionSetService {
                     questionWithOptions.put("question", question.getQuestion());
                     questionWithOptions.put("options", eligibilityQuestion.getOptions());
                     questionWithOptions.put("Heading", eligibilityQuestion.getHeading());
-                    questionWithOptions.put("ScreenName", eligibilityQuestion.getScreenName());
 
                     questionsWithOptions.add(questionWithOptions);
                 }
@@ -196,26 +195,26 @@ public class EligibilityQuestionSetService {
 
                     if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase(NUMERIC)) {
                         if (processedNumericQuestionIds.add(question.getId())) {
-                            numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), eligibilityQuestions.getField()));
+                            numericQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getField()));
 
                         }
                     } else if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase("text")) {
                         if (processedTextQuestionIds.add(question.getId())) {
-                            textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), eligibilityQuestions.getField()));
+                            textQuestions.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getField()));
 
                         }
                     } else if (!eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getType().equalsIgnoreCase(MIN_MAX)) {
                         if (processedMixMaxQuestionIds.add(question.getId())) {
-                            minMaxResponse.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, eligibilityQuestions.getScreenName(), null));
+                            minMaxResponse.add(new QuestionWithUserAnswerResponse(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), userAnswer, null));
 
                         }
                     } else {
                         if (processedOtherQuestionIds.add(question.getId())) {
                             QuestionValuePair otherData;
                             if (Boolean.TRUE.equals(forUser)) {
-                                otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), null, userAnswer);
+                                otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), null, userAnswer);
                             } else {
-                                otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), question.getAnswer(), userAnswer);
+                                otherData = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), question.getAnswer(), userAnswer);
                             }
                             otherQuestions.add(otherData);
                         }
@@ -259,7 +258,7 @@ public class EligibilityQuestionSetService {
 
                     EligibilityQuestions eligibilityQuestions = eligibilityQuestionsRepository.findByQuestion(question.getQuestion());
                     if (eligibilityQuestions != null) {
-                        QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getScreenName(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), eligibilityQuestions.getField() == null ? question.getAnswer() : null, question.getUserAnswer());
+                        QuestionValuePair questionValuePair = new QuestionValuePair(new EligibilityQuestions(question.getId(), eligibilityQuestions.getHeading(), eligibilityQuestions.getQuestion(), eligibilityQuestions.getType(), eligibilityQuestions.getOptions(), eligibilityQuestions.getLanguageCode(), eligibilityQuestions.getField()), eligibilityQuestions.getField() == null ? question.getAnswer() : null, question.getUserAnswer());
 
                         if (eligibilityQuestions.getType().equalsIgnoreCase(TEXT_BOX) && eligibilityQuestions.getField() != null && eligibilityQuestions.getField().equalsIgnoreCase(NUMERIC)) {
                             if (!processedNumericQuestions.contains(questionKey)) {

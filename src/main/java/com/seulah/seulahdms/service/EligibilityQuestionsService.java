@@ -57,7 +57,6 @@ public class EligibilityQuestionsService {
             } else {
                 eligibilityQuestions.setLanguageCode(eligibilityQuestionsRequest.getLanguageCode().toLowerCase());
             }
-            eligibilityQuestions.setScreenName(eligibilityQuestionsRequest.getScreenName());
             eligibilityQuestions = eligibilityQuestionsRepository.save(eligibilityQuestions);
             return new ResponseEntity<>(new MessageResponse("Question Created Successfully", eligibilityQuestions, false), HttpStatus.CREATED);
 
@@ -120,9 +119,6 @@ public class EligibilityQuestionsService {
             }
             if (eligibilityQuestionsRequest.getOptions() != null && !eligibilityQuestionsRequest.getOptions().isEmpty()) {
                 eligibilityQuestions.get().setOptions(eligibilityQuestionsRequest.getOptions());
-            }
-            if (eligibilityQuestionsRequest.getScreenName() != null && !eligibilityQuestionsRequest.getScreenName().isEmpty()) {
-                eligibilityQuestions.get().setScreenName(eligibilityQuestionsRequest.getScreenName());
             }
             if (eligibilityQuestionsRequest.getLanguageCode() != null && !eligibilityQuestionsRequest.getLanguageCode().isEmpty()) {
                 eligibilityQuestions.get().setLanguageCode(eligibilityQuestionsRequest.getLanguageCode());

@@ -25,7 +25,5 @@ public class QuestionWithUserAnswerResponse {
 
     private List<String> userAnswer;
 
-    private String screenName;
-
     private String field;
 }

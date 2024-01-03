@@ -24,8 +24,6 @@ public class EligibilityQuestionsRequest {
 
     private List<String> options;
 
-    private String screenName;
-
     private String languageCode;
     private String field;
 

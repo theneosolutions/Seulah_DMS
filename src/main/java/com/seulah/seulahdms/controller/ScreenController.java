@@ -40,4 +40,10 @@ public class ScreenController {
         log.info("Getting all screen by set id {}", setId);
         return screenService.getScreenBySetId(setId);
     }
+    @GetMapping("/getScreenWithQuestionDetailBySetId")
+    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(@RequestParam Long setId) {
+        log.info("Getting all screen with question detail by set id {}", setId);
+        return screenService.getScreenWithQuestionDetailBySetId(setId);
+    }
+
 }
