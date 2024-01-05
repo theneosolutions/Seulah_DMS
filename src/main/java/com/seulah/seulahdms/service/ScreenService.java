@@ -150,12 +150,11 @@ public class ScreenService {
                     questions.setUserAnswer(optionalQuestionSet.get().getUserAnswer());
                     questionResponseList.add(questions);
                     customScreenQuestions.setQuestions(questionResponseList);
+                    customScreenQuestionsList.add(customScreenQuestions);
                 }
-
-                customScreenQuestionsList.add(customScreenQuestions);
-
+                items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
             });
-            items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
+
 
             return items;
         }
