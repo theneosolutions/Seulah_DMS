@@ -46,13 +46,13 @@ public class ScreenController {
     }
 
     @GetMapping("/getScreenWithQuestionDetailBySetId")
-    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(@RequestParam Long setId) {
+    public ResponseEntity<?> getScreenWithQuestionDetailBySetId(@RequestParam Long setId) {
         log.info("Getting screen with question detail by set id {}", setId);
         return screenService.getScreenWithQuestionDetailBySetId(setId);
     }
 
     @GetMapping("/getAllScreenWithQuestionDetail")
-    public List<ResponseEntity<MessageResponse>> getAllScreenWithQuestionDetail() {
+    public List<ResponseEntity<?>> getAllScreenWithQuestionDetail() {
         log.info("Getting all screen with question detail ");
         return screenService.getAllScreenWithQuestionDetail();
     }
