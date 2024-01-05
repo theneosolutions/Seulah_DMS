@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -49,7 +50,7 @@ public class ScreenController {
     }
 
     @GetMapping("/getScreenWithQuestionDetailBySetId")
-    public List<?>  getScreenWithQuestionDetailBySetId(@RequestParam Long setId) throws JsonProcessingException {
+    public List<CustomFinalScreenResponse>getScreenWithQuestionDetailBySetId(@RequestParam Long setId) throws JsonProcessingException {
         log.info("Getting screen with question detail by set id {}", setId);
         return screenService.getScreenWithQuestionDetailBySetId(setId);
     }

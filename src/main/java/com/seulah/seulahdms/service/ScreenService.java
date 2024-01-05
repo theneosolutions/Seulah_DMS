@@ -2,6 +2,7 @@ package com.seulah.seulahdms.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 import com.seulah.seulahdms.entity.EligibilityQuestionSet;
 import com.seulah.seulahdms.entity.EligibilityQuestions;
@@ -33,9 +34,6 @@ public class ScreenService {
     private final EligibilityQuestionsRepository eligibilityQuestionsRepository;
     private final EligibilityQuestionSetRepository eligibilityQuestionSetRepository;
     private final QuestionSetRepository questionSetRepository;
-    CustomScreenQuestions customScreenQuestions = new CustomScreenQuestions();
-    QuestionResponse questions = new QuestionResponse();
-    List<QuestionResponse> questionList;
 
     public ScreenService(ScreenRepository screenRepository, EligibilityQuestionSetService eligibilityQuestionSetService, EligibilityQuestionsRepository eligibilityQuestionsRepository, EligibilityQuestionSetRepository eligibilityQuestionSetRepository,
                          QuestionSetRepository questionSetRepository) {
@@ -111,8 +109,9 @@ public class ScreenService {
 
         return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
+    List<Object>  questionList;
+    public  List<CustomFinalScreenResponse> getScreenWithQuestionDetailBySetId(Long setId) throws JsonProcessingException {
 
-    public List<CustomFinalScreenResponse> getScreenWithQuestionDetailBySetId(Long setId) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 
         if (eligibilityQuestionSet.isPresent()) {
@@ -121,7 +120,7 @@ public class ScreenService {
 
             screenNames.forEach(screenName -> {
                 String screenHeading = screenName.getScreenHeading();
-                List<Object> questionList = map.getOrDefault(screenHeading, new ArrayList<>());
+               questionList = map.getOrDefault(screenHeading, new ArrayList<>());
 
                 ResponseEntity<MessageResponse> questionResponse = eligibilityQuestionSetService.getQuestionByIdAndSetId(screenName.getQuestionIds(), setId);
 
@@ -147,10 +146,17 @@ public class ScreenService {
                     questionList.add(combinedObject);
                 }
 
-                map.put(screenHeading.replaceAll("\\s", ""), questionList);
+                map.put("data", questionList);
             });
+            
+
+            Map<String, Object> hashMap = new HashMap<>();
+            hashMap.put("message", SUCCESS);
+            hashMap.put("setId", setId);
+            hashMap.put("data", map);
+
             List<CustomFinalScreenResponse> test = new ArrayList<>();
-            test.add(new CustomFinalScreenResponse(setId, SUCCESS, map));
+            test.add(new CustomFinalScreenResponse(setId, SUCCESS, questionList));
             return test;
         }
         return  null;
@@ -208,7 +214,11 @@ public class ScreenService {
         eligibilityQuestionSet.forEach(set -> {
             List<ScreenName> screenNameList = screenRepository.findBySetId(set.getId());
             if (!screenNameList.isEmpty()) {
-                responses.addAll(getScreenWithQuestionDetailBySetId(set.getId()));
+                try {
+                    responses.addAll(getScreenWithQuestionDetailBySetId(set.getId()));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
         return responses;

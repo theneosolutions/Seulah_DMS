@@ -8,11 +8,12 @@ import java.util.Map;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class CustomFinalScreenResponse {
     private Long setId;
     private String message;
-    Map<String, List<Object>> data = new HashMap<>();
+    List<Object> data;
+
 }
