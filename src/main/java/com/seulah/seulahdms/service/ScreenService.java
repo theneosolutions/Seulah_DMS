@@ -13,10 +13,7 @@ import com.seulah.seulahdms.repository.QuestionSetRepository;
 import com.seulah.seulahdms.repository.ScreenRepository;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
-import com.seulah.seulahdms.response.CustomScreenQuestions;
-import com.seulah.seulahdms.response.CustomScreenResponse;
-import com.seulah.seulahdms.response.QuestionResponse;
-import com.seulah.seulahdms.response.ScreenResponse;
+import com.seulah.seulahdms.response.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -115,17 +112,16 @@ public class ScreenService {
         return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
 
-    public List<CustomScreenResponse> getScreenWithQuestionDetailBySetId(Long setId)  {
+    public List<CustomFinalScreenResponse> getScreenWithQuestionDetailBySetId(Long setId) {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
-        List<QuestionResponse> questionResponseList = new ArrayList<>();
+
         if (eligibilityQuestionSet.isPresent()) {
             List<ScreenName> screenNames = screenRepository.findBySetId(setId);
-            Map<String, String> map = new HashMap<>();
-            List<CustomScreenResponse> items = new ArrayList<>();
-            List<CustomScreenQuestions> customScreenQuestionsList = new ArrayList<>();
+            Map<String, List<Object>> map = new HashMap<>();
+
             screenNames.forEach(screenName -> {
                 String screenHeading = screenName.getScreenHeading();
-             //   questionList = map.getOrDefault(screenHeading, new ArrayList<>());
+                List<Object> questionList = map.getOrDefault(screenHeading, new ArrayList<>());
 
                 ResponseEntity<MessageResponse> questionResponse = eligibilityQuestionSetService.getQuestionByIdAndSetId(screenName.getQuestionIds(), setId);
 
@@ -137,30 +133,29 @@ public class ScreenService {
 
                     EligibilityQuestions eligibilityQuestion = eligibilityQuestionsRepository.findByQuestion(question);
                     Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(screenName.getQuestionIds());
+                    Map<String, Object> combinedObject = new HashMap<>();
+                    combinedObject.put("screenName", screenHeading);
+                    combinedObject.put("id", eligibilityQuestion.getId());
+                    combinedObject.put("heading", eligibilityQuestion.getHeading());
+                    combinedObject.put("question", eligibilityQuestion.getQuestion());
+                    combinedObject.put("type", eligibilityQuestion.getType());
+                    combinedObject.put("options", eligibilityQuestion.getOptions());
+                    combinedObject.put("languageCode", eligibilityQuestion.getLanguageCode());
+                    combinedObject.put("field", eligibilityQuestion.getField());
+                    combinedObject.put("userAnswer", optionalQuestionSet.isPresent() ? optionalQuestionSet.get().getUserAnswer() : "");
 
-                    customScreenQuestions.setScreenName(screenHeading);
-                  //  questionList.add(combinedObject);
-
-                    questions.setHeading(eligibilityQuestion.getHeading());
-                    questions.setQuestion(eligibilityQuestion.getQuestion());
-                    questions.setType(eligibilityQuestion.getType());
-                    questions.setOptions(eligibilityQuestion.getOptions());
-                    questions.setLanguageCode(eligibilityQuestion.getLanguageCode());
-                    questions.setField(eligibilityQuestion.getField());
-                    questions.setUserAnswer(optionalQuestionSet.get().getUserAnswer());
-                    questionResponseList.add(questions);
-                    customScreenQuestions.setQuestions(questionResponseList);
-                    customScreenQuestionsList.add(customScreenQuestions);
+                    questionList.add(combinedObject);
                 }
-                items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
+
+                map.put(screenHeading.replaceAll("\\s", ""), questionList);
             });
-
-
-            return items;
+            List<CustomFinalScreenResponse> test = new ArrayList<>();
+            test.add(new CustomFinalScreenResponse(setId, SUCCESS, map));
+            return test;
         }
-    return null;
-     //   return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST);
+        return  null;
     }
+
 
 //    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(Long setId) {
 //        Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
@@ -206,9 +201,9 @@ public class ScreenService {
 //
 //        return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST);
 //    }
-    public List<CustomScreenResponse> getAllScreenWithQuestionDetail() {
+    public List<CustomFinalScreenResponse> getAllScreenWithQuestionDetail() {
         List<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findAll();
-        List<CustomScreenResponse> responses = new ArrayList<>();
+        List<CustomFinalScreenResponse> responses = new ArrayList<>();
 
         eligibilityQuestionSet.forEach(set -> {
             List<ScreenName> screenNameList = screenRepository.findBySetId(set.getId());

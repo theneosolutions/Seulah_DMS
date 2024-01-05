@@ -2,7 +2,9 @@ package com.seulah.seulahdms.response;
 
 import lombok.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -10,5 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class CustomFinalScreenResponse {
-    private List<CustomScreenResponse> items;
+    private Long setId;
+    private String message;
+    Map<String, List<Object>> data = new HashMap<>();
 }

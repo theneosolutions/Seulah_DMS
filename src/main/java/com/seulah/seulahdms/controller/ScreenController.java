@@ -4,6 +4,7 @@ package com.seulah.seulahdms.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
+import com.seulah.seulahdms.response.CustomFinalScreenResponse;
 import com.seulah.seulahdms.response.CustomScreenResponse;
 import com.seulah.seulahdms.service.ScreenService;
 import lombok.extern.slf4j.Slf4j;
@@ -48,13 +49,13 @@ public class ScreenController {
     }
 
     @GetMapping("/getScreenWithQuestionDetailBySetId")
-    public List<CustomScreenResponse>  getScreenWithQuestionDetailBySetId(@RequestParam Long setId) throws JsonProcessingException {
+    public List<?>  getScreenWithQuestionDetailBySetId(@RequestParam Long setId) throws JsonProcessingException {
         log.info("Getting screen with question detail by set id {}", setId);
         return screenService.getScreenWithQuestionDetailBySetId(setId);
     }
 
     @GetMapping("/getAllScreenWithQuestionDetail")
-    public List<CustomScreenResponse> getAllScreenWithQuestionDetail() {
+    public List<CustomFinalScreenResponse> getAllScreenWithQuestionDetail() {
         log.info("Getting all screen with question detail ");
         return screenService.getAllScreenWithQuestionDetail();
     }
