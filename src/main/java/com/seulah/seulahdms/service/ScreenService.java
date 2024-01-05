@@ -128,6 +128,7 @@ public class ScreenService {
                     EligibilityQuestions eligibilityQuestion = eligibilityQuestionsRepository.findByQuestion(question);
                     Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(screenName.getQuestionIds());
                     Map<String, Object> combinedObject = new HashMap<>();
+                    combinedObject.put("screenName",screenHeading);
                     combinedObject.put("setId", setId);
                     combinedObject.put("id", eligibilityQuestion.getId());
                     combinedObject.put("heading", eligibilityQuestion.getHeading());
@@ -141,7 +142,7 @@ public class ScreenService {
                     questionList.add(combinedObject);
                 }
 
-                map.put(screenHeading, questionList);
+                map.put(screenHeading.replaceAll("\\s",""), questionList);
             });
 
             return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
