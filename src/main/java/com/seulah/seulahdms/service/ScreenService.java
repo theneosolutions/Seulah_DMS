@@ -115,7 +115,7 @@ public class ScreenService {
         return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
 
-    public List<CustomScreenResponse> getScreenWithQuestionDetailBySetId(Long setId) {
+    public List<CustomScreenResponse> getScreenWithQuestionDetailBySetId(Long setId)  {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
         List<QuestionResponse> questionResponseList = new ArrayList<>();
         if (eligibilityQuestionSet.isPresent()) {
@@ -125,7 +125,7 @@ public class ScreenService {
             List<CustomScreenQuestions> customScreenQuestionsList = new ArrayList<>();
             screenNames.forEach(screenName -> {
                 String screenHeading = screenName.getScreenHeading();
-                //   questionList = map.getOrDefault(screenHeading, new ArrayList<>());
+             //   questionList = map.getOrDefault(screenHeading, new ArrayList<>());
 
                 ResponseEntity<MessageResponse> questionResponse = eligibilityQuestionSetService.getQuestionByIdAndSetId(screenName.getQuestionIds(), setId);
 
@@ -137,12 +137,9 @@ public class ScreenService {
 
                     EligibilityQuestions eligibilityQuestion = eligibilityQuestionsRepository.findByQuestion(question);
                     Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(screenName.getQuestionIds());
-                    Map<String, Object> combinedObject = new HashMap<>();
-                    combinedObject.put("screenName", screenHeading);
-                    combinedObject.put("setId", setId);
 
                     customScreenQuestions.setScreenName(screenHeading);
-                    //  questionList.add(combinedObject);
+                  //  questionList.add(combinedObject);
 
                     questions.setHeading(eligibilityQuestion.getHeading());
                     questions.setQuestion(eligibilityQuestion.getQuestion());
@@ -158,16 +155,15 @@ public class ScreenService {
                 customScreenQuestionsList.add(customScreenQuestions);
 
             });
-            items.add(new CustomScreenResponse(SUCCESS, setId, customScreenQuestionsList, false));
-
+            items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
 
             return items;
         }
-        return null;
-        //return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST);
+    return null;
+     //   return new ResponseEntity<>(new MessageResponse(NO_RECORD_FOUND, null, false), HttpStatus.BAD_REQUEST);
     }
 
-    //    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(Long setId) {
+//    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(Long setId) {
 //        Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 //
 //        if (eligibilityQuestionSet.isPresent()) {
