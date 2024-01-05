@@ -149,15 +149,15 @@ public class ScreenService {
                     questions.setField(eligibilityQuestion.getField());
                     questions.setUserAnswer(optionalQuestionSet.get().getUserAnswer());
                     questionResponseList.add(questions);
-                    customScreenQuestions.setQuestions(questionResponseList);
-                    customScreenQuestionsList.add(customScreenQuestions);
+
                 }
+                customScreenQuestions.setQuestions(questionResponseList);
+                customScreenQuestionsList.add(customScreenQuestions);
 
 
-                items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
            //     map.put(screenHeading.replaceAll("\\s",""), questionList);
             });
-
+            items.add(new CustomScreenResponse(SUCCESS,setId,customScreenQuestionsList,false));
             return new ResponseEntity<>(items, HttpStatus.OK);
         }
 
