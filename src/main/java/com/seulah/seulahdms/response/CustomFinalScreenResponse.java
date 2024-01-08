@@ -14,6 +14,6 @@ import java.util.Map;
 public class CustomFinalScreenResponse {
     private Long setId;
     private String message;
-    List<Object> data;
+    List<CustomScreenQuestions> data;
 
 }

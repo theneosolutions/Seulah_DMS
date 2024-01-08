@@ -110,17 +110,22 @@ public class ScreenService {
         return new ResponseEntity<>(new MessageResponse(SUCCESS, map, false), HttpStatus.OK);
     }
     List<Object>  questionList;
+    String screenHeading;
     public  List<CustomFinalScreenResponse> getScreenWithQuestionDetailBySetId(Long setId) throws JsonProcessingException {
 
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 
         if (eligibilityQuestionSet.isPresent()) {
             List<ScreenName> screenNames = screenRepository.findBySetId(setId);
-            Map<String, List<Object>> map = new HashMap<>();
 
+
+            Map<String, List<Object>> map = new HashMap<>();
+            List<Object> questionArray = new ArrayList<>();
+            List<CustomScreenQuestions> test = new ArrayList<>();
+            Map<String,String> screenMap = new HashMap<>();
             screenNames.forEach(screenName -> {
-                String screenHeading = screenName.getScreenHeading();
-               questionList = map.getOrDefault(screenHeading, new ArrayList<>());
+                screenHeading = screenName.getScreenHeading();
+                questionList = map.getOrDefault(screenHeading, new ArrayList<>());
 
                 ResponseEntity<MessageResponse> questionResponse = eligibilityQuestionSetService.getQuestionByIdAndSetId(screenName.getQuestionIds(), setId);
 
@@ -133,7 +138,6 @@ public class ScreenService {
                     EligibilityQuestions eligibilityQuestion = eligibilityQuestionsRepository.findByQuestion(question);
                     Optional<QuestionSet> optionalQuestionSet = questionSetRepository.findByIdWithEligibilityQuestions(screenName.getQuestionIds());
                     Map<String, Object> combinedObject = new HashMap<>();
-                    combinedObject.put("screenName", screenHeading);
                     combinedObject.put("id", eligibilityQuestion.getId());
                     combinedObject.put("heading", eligibilityQuestion.getHeading());
                     combinedObject.put("question", eligibilityQuestion.getQuestion());
@@ -146,24 +150,24 @@ public class ScreenService {
                     questionList.add(combinedObject);
                 }
 
-                map.put("data", questionList);
+                test.add(new CustomScreenQuestions(screenHeading,questionArray));
             });
-            
+
 
             Map<String, Object> hashMap = new HashMap<>();
             hashMap.put("message", SUCCESS);
             hashMap.put("setId", setId);
-            hashMap.put("data", map);
+            hashMap.put(screenHeading, test);
 
-            List<CustomFinalScreenResponse> test = new ArrayList<>();
-            test.add(new CustomFinalScreenResponse(setId, SUCCESS, questionList));
-            return test;
+
+            List<CustomFinalScreenResponse> test1 = new ArrayList<>();
+            test1.add(new CustomFinalScreenResponse(setId, SUCCESS, test));
+            return test1;
         }
         return  null;
     }
 
-
-//    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(Long setId) {
+    //    public ResponseEntity<MessageResponse> getScreenWithQuestionDetailBySetId(Long setId) {
 //        Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 //
 //        if (eligibilityQuestionSet.isPresent()) {

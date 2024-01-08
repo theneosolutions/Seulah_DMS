@@ -15,6 +15,5 @@ import java.util.Set;
 @Setter
 public class CustomScreenQuestions {
     private String screenName;
-    private List<QuestionResponse> questions;
-
+    private List<Object> questions;
 }
