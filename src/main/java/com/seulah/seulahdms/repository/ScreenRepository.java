@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface ScreenRepository extends JpaRepository<ScreenName, Long> {
@@ -15,5 +16,5 @@ public interface ScreenRepository extends JpaRepository<ScreenName, Long> {
 
     List<ScreenName> findByQuestionIds(Long questionIds);
 
-    List<ScreenName> findBySetId(Long setId);
+    Set<ScreenName> findBySetId(Long setId);
 }

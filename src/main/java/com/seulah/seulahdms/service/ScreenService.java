@@ -1,8 +1,6 @@
 package com.seulah.seulahdms.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 import com.seulah.seulahdms.entity.EligibilityQuestionSet;
 import com.seulah.seulahdms.entity.EligibilityQuestions;
@@ -14,8 +12,9 @@ import com.seulah.seulahdms.repository.QuestionSetRepository;
 import com.seulah.seulahdms.repository.ScreenRepository;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
-import com.seulah.seulahdms.response.*;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.seulah.seulahdms.response.CustomFinalScreenResponse;
+import com.seulah.seulahdms.response.CustomScreenQuestions;
+import com.seulah.seulahdms.response.ScreenResponse;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.seulah.seulahdms.utils.Constants.NO_RECORD_FOUND;
 import static com.seulah.seulahdms.utils.Constants.SUCCESS;
 
 @Service
@@ -91,7 +89,7 @@ public class ScreenService {
     }
 
     public ResponseEntity<MessageResponse> getScreenBySetId(Long setId) {
-        List<ScreenName> screenNames = screenRepository.findBySetId(setId);
+        Set<ScreenName> screenNames = screenRepository.findBySetId(setId);
         Map<String, List<Object>> map = new HashMap<>();
 
         screenNames.forEach(screenName -> {
@@ -116,13 +114,11 @@ public class ScreenService {
         Optional<EligibilityQuestionSet> eligibilityQuestionSet = eligibilityQuestionSetRepository.findById(setId);
 
         if (eligibilityQuestionSet.isPresent()) {
-            List<ScreenName> screenNames = screenRepository.findBySetId(setId);
+            Set<ScreenName> screenNames = screenRepository.findBySetId(setId);
 
 
             Map<String, List<Object>> map = new HashMap<>();
-            List<Object> questionArray = new ArrayList<>();
             List<CustomScreenQuestions> test = new ArrayList<>();
-            Map<String,String> screenMap = new HashMap<>();
             screenNames.forEach(screenName -> {
                 screenHeading = screenName.getScreenHeading();
                 questionList = map.getOrDefault(screenHeading, new ArrayList<>());
@@ -216,7 +212,7 @@ public class ScreenService {
         List<CustomFinalScreenResponse> responses = new ArrayList<>();
 
         eligibilityQuestionSet.forEach(set -> {
-            List<ScreenName> screenNameList = screenRepository.findBySetId(set.getId());
+            Set<ScreenName> screenNameList = screenRepository.findBySetId(set.getId());
             if (!screenNameList.isEmpty()) {
                 try {
                     responses.addAll(getScreenWithQuestionDetailBySetId(set.getId()));

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * @author Muhammad Mansoor
@@ -28,4 +29,17 @@ public class ScreenName {
 
     private String userId;
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScreenName that = (ScreenName) o;
+        return Objects.equals(screenHeading, that.screenHeading);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(screenHeading);
+    }
 }
