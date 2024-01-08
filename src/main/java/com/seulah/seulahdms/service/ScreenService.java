@@ -150,7 +150,7 @@ public class ScreenService {
                     questionList.add(combinedObject);
                 }
 
-                test.add(new CustomScreenQuestions(screenHeading,questionArray));
+                test.add(new CustomScreenQuestions(screenHeading,questionList));
             });
 
 
