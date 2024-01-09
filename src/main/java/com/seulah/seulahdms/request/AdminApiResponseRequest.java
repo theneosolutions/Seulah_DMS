@@ -15,8 +15,6 @@ public class AdminApiResponseRequest {
     private String successDescription;
     private String errorImage;
     private String errorDescription;
-
     private Long setId;
-
     private String languageCode;
 }

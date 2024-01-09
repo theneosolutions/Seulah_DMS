@@ -358,7 +358,7 @@ public class EligibilityQuestionSetService {
                                 normalQuestionEligibility = checkNormalAnswer(questionSet);
                             }
                         }
-                        return minMaxQuestion && normalQuestionEligibility;
+                        return minMaxQuestion || normalQuestionEligibility;
                     });
 
 
