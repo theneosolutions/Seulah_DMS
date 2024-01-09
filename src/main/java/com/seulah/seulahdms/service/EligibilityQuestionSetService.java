@@ -420,13 +420,16 @@ public class EligibilityQuestionSetService {
     }
 
     private boolean checkNormalAnswer(QuestionSet questionSet) {
-        List<String> normalizedAnswer = questionSet.getAnswer().stream()
-                .map(String::toLowerCase)
-                .toList();
+      if(!questionSet.getUserAnswer().isEmpty()) {
+          List<String> normalizedAnswer = questionSet.getAnswer().stream()
+                  .map(String::toLowerCase)
+                  .toList();
+          String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
 
-        String normalizedUserAnswer = questionSet.getUserAnswer().get(0).toLowerCase();
-
-        return normalizedAnswer.contains(normalizedUserAnswer);
+          return normalizedAnswer.contains(normalizedUserAnswer);
+      }else{
+          return false;
+      }
     }
 
 }
