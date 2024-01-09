@@ -5,14 +5,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.seulah.seulahdms.request.MessageResponse;
 import com.seulah.seulahdms.request.ScreenRequest;
 import com.seulah.seulahdms.response.CustomFinalScreenResponse;
-import com.seulah.seulahdms.response.CustomScreenResponse;
 import com.seulah.seulahdms.service.ScreenService;
+import com.seulah.seulahdms.service.TestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 
 @RestController
@@ -20,7 +19,6 @@ import java.util.Map;
 @Slf4j
 public class ScreenController {
     private final ScreenService screenService;
-
     public ScreenController(ScreenService screenService) {
         this.screenService = screenService;
     }

@@ -16,6 +16,4 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet,Long> {
 
 
 
-
-
 }

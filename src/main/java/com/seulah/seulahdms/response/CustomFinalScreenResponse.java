@@ -13,6 +13,7 @@ import java.util.Map;
 @ToString
 public class CustomFinalScreenResponse {
     private Long setId;
+    private String setName;
     private String message;
     List<CustomScreenQuestions> data;
 
